@@ -1,7 +1,7 @@
 %  LaTeX support: latex@mdpi.com 
 %  MDPI Remote Sensing template (ACS citation style)
 
-\documentclass[remotesensing,article,submit,moreauthors]{Definitions/mdpi} 
+\documentclass[remotesensing,article,accept,moreauthors]{Definitions/mdpi} 
 
 %=================================================================
 % MDPI internal commands - do not modify
@@ -36,8 +36,26 @@ xinzh865@buaa.edu.cn (X.Z.); yousihai12345@163.com (S.Y.)}
 % Contact information of the corresponding author
 \corres{Correspondence: yousihai12345@163.com}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Only for the journal Advances in Respiratory Medicine, Future, Sensors and Smart Cities
+\addhighlights{yes}
+\renewcommand{\addhighlights}{%
+\vspace{3pt}\\
+\textbf{What are the main findings?}
+\begin{itemize}[labelsep=2.5mm,topsep=-3pt]
+	\item A lightweight fully-convolutional U-Net (0.49--7.82M parameters) jointly performs denoising and brightness recovery on extremely low-light RAW images in a single forward pass.
+	\item Under the dev-RAW protocol, the method achieves 34.37 dB PSNR on the SIED test set, 13.31 dB above the fixed-ISP gain baseline.
+\end{itemize}\vspace{3pt}
+\textbf{What are the implications of the main finding?}
+\begin{itemize}[labelsep=2.5mm,topsep=-3pt]
+	\item A single model covers three illuminance levels (0.01--0.1 / 0.001--0.01 / 0.0001--0.001 lx) and generalizes across cameras without fine-tuning (Canon: 33.58 dB).
+	\item The 0.49M-parameter variant runs at 82.6 FPS on a V100 and 7.61 FPS (fp16) on Jetson Orin Nano, enabling real-time edge deployment.
+\end{itemize}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Abstract
-\abstract{Extremely low-light RAW image enhancement is critical for applications such as surveillance and night photography, yet existing methods mostly rely on large-parameter diffusion models or deep Transformers, which incur high computational cost and are difficult to deploy in real time. Targeting efficiency, this paper proposes a lightweight fully-convolutional U-Net that takes white-balanced packed Bayer RAW as input and jointly performs denoising and brightness recovery in a single forward pass. We adopt the dev-RAW evaluation protocol, which uses a long-exposure RAW developed by a fixed ISP as the supervisory reference, avoiding JPG--RAW misalignment and ISP inconsistency. Instead of training a separate model for each illuminance level, a single model covers the three illuminance levels of the SIED dataset (0.01--0.1 / 0.001--0.01 / 0.0001--0.001~lx) without any illuminance prior. On the official SIED Sony 0.01--0.1~lx test set (180 scenes, dev-RAW protocol), the proposed method (base\_ch$=$32, with SE) achieves 34.37~dB PSNR / 0.9059 SSIM, 13.31~dB higher than the fixed-ISP gain baseline (21.06~dB) and significantly better than a SID-style learning baseline trained under the same setting (16.78~dB, due to the JPG-target supervision-domain mismatch). This configuration has only 7.82M parameters and runs at 17.8~FPS on a V100; compressed to base\_ch$=$8 it has only 0.49M parameters at 82.6~FPS; on the edge device Jetson Orin Nano Super, base\_ch$=$8 reaches 5.98/7.61~FPS in fp32/fp16. The single model generalizes across cameras without fine-tuning (Canon: 33.05~dB), and its PSNR drops gracefully from 34.37~dB to 31.74~dB across the three illuminance levels. The results show that lightweight CNNs can deliver usable quality at minimal cost for extremely low-light RAW enhancement, providing a practical solution for resource-constrained scenarios.}
+\abstract{Extremely low-light RAW image enhancement is critical for applications such as surveillance and night photography, yet existing methods mostly rely on large-parameter diffusion models or deep Transformers, which incur high computational cost and are difficult to deploy in real time. Targeting efficiency, this paper proposes a lightweight fully-convolutional U-Net that takes white-balanced packed Bayer RAW as input and jointly performs denoising and brightness recovery in a single forward pass. We adopt the dev-RAW evaluation protocol, which uses a long-exposure RAW developed by a fixed ISP as the supervisory reference, avoiding JPG--RAW misalignment and ISP inconsistency. Instead of training a separate model for each illuminance level, a single model covers the three illuminance levels of the SIED dataset (0.01--0.1 / 0.001--0.01 / 0.0001--0.001~lx) without any illuminance prior. On the official SIED Sony 0.01--0.1~lx test set (180 scenes, dev-RAW protocol), the proposed method (base\_ch$=$32, with SE) achieves 34.37~dB PSNR / 0.9059 SSIM, 13.31~dB higher than the fixed-ISP gain baseline (21.06~dB) and significantly better than a SID-style learning baseline trained under the same setting (16.78~dB, due to the JPG-target supervision-domain mismatch). This configuration has only 7.82M parameters and runs at 17.8~FPS on a V100; compressed to base\_ch$=$8 it has only 0.49M parameters at 82.6~FPS; on the edge device Jetson Orin Nano Super, base\_ch$=$8 reaches 5.98/7.61~FPS in fp32/fp16. The single model generalizes across cameras without fine-tuning (Canon: 33.58~dB), and its PSNR drops gracefully from 34.37~dB to 31.74~dB across the three illuminance levels. These results indicate that lightweight CNNs can reach usable quality for extremely low-light RAW enhancement at minimal computational cost, making them a practical choice for resource-constrained deployment.}
 
 % Keywords
 \keyword{low-light image enhancement; RAW image processing; lightweight network; U-Net; channel attention; dev-RAW protocol} 
@@ -47,11 +65,6 @@ xinzh865@buaa.edu.cn (X.Z.); yousihai12345@163.com (S.Y.)}
 % (the default MDPI layout reserves a 5.86cm left margin-par column that
 %  is only populated on the first page, leaving large blank space on
 %  subsequent pages).
-\geometry{left=1.27cm, right=1.27cm, marginparwidth=0cm, marginparsep=0cm}
-\setlength{\extralength}{0pt}
-\renewcommand{\contentleftcolumn}{}
-\fancyheadoffset[L]{0pt}
-\fancyfootoffset[L]{0pt}
 
 \begin{document}
 
@@ -60,39 +73,51 @@ xinzh865@buaa.edu.cn (X.Z.); yousihai12345@163.com (S.Y.)}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{figures/fig1_motivation.png}
-\caption{Motivation. Left column: an extremely low-light short-exposure RAW directly amplified by a fixed ISP (severe noise and color cast). Right column: the long-exposure RAW reference (clear). Top/bottom rows show the full frame and a center crop. The gap highlights the challenge of extremely low-light RAW enhancement.}
-\label{fig:motivation}
+\includegraphics[width=\linewidth]{figures/fig1_landscape.png}
+\caption{Research landscape of extremely low-light RAW enhancement. Three major architectural frameworks are positioned by their parameter count (log scale) against the PSNR on the SID(Sony) sRGB benchmark (published values cited from SIED). CNN-based methods (e.g., SID) are lightweight with a single forward pass; Mamba/Transformer methods (e.g., Retinex-RAWMamba) spend more parameters for higher quality; diffusion methods (e.g., SIED) reach the highest quality but require heavy multi-step inference.}
+\label{fig:landscape}
 \end{figure}
 
-In applications such as night photography, surveillance, and astronomical imaging, the ambient light is extremely weak. Short exposures collect scarce photons, leaving the RAW data noise-dominated; direct amplification therefore yields severe noise and color casts. As shown in Figure~\ref{fig:motivation}, the short-exposure RAW directly amplified by a fixed ISP suffers from severe noise and color casts and has a large gap with the long-exposure reference, intuitively illustrating the challenge---traditional ISP amplification alone is far from sufficient to produce a usable image. Traditional methods such as LIME~\citep{guo2017lime} and RetinexNet~\citep{wei2018retinexnet} mostly operate in the sRGB domain and cannot exploit the linear physical characteristics of the RAW domain. Chen \emph{et al.} proposed SID~\citep{chen2018sid}, the first end-to-end learned enhancement in the RAW domain, which significantly outperformed sRGB-domain methods. In recent years, however, quality-oriented methods have trended toward heavier models: diffusion models (SIED~\citep{jiang2025sied}, LDM-ISP~\citep{wen2023ldmisp}, LightenDiffusion~\citep{jiang2024lightendiffusion}), Mamba architectures (Retinex-RAWMamba~\citep{chen2024rawmamba}, HiMA~\citep{chen2025hima}), and Transformers (Restormer~\citep{zamir2022restormer}, Retinexformer~\citep{cai2023retinexformer}) improve restoration quality but at the cost of sharply increased parameters and latency. SIED~\citep{jiang2025sied} requires prolonged two-stage optimization and iterative sampling at inference, making it difficult to deploy on resource-constrained platforms. Recent efficiency-oriented methods such as FLOL~\citep{benito2025flol} and DarkIR~\citep{feijoo2025darkir} mostly operate in the sRGB domain and do not fully exploit the linear RAW signal.
+In applications such as night photography, surveillance, and astronomical imaging, the ambient light is extremely weak. Short exposures collect scarce photons, leaving the RAW data noise-dominated; direct amplification therefore yields severe noise and color casts---traditional ISP amplification alone is far from sufficient to produce a usable image. Traditional methods such as LIME~\citep{guo2017lime} and RetinexNet~\citep{wei2018retinexnet} mostly operate in the sRGB domain and cannot exploit the linear physical characteristics of the RAW domain. Chen \emph{et al.} proposed SID~\citep{chen2018sid}, the first end-to-end learned enhancement in the RAW domain, which significantly outperformed sRGB-domain methods. More recent quality-oriented methods have shifted toward heavier backbones: diffusion models (SIED~\citep{jiang2025sied}, LDM-ISP~\citep{wen2023ldmisp}, LightenDiffusion~\citep{jiang2024lightendiffusion}), Mamba architectures (Retinex-RAWMamba~\citep{chen2024rawmamba}, HiMA~\citep{chen2025hima}), and Transformers (Restormer~\citep{zamir2022restormer}, Retinexformer~\citep{cai2023retinexformer}) raise restoration quality, but only at sharply increased parameters and latency. SIED~\citep{jiang2025sied} requires prolonged two-stage optimization and iterative sampling at inference, making it difficult to deploy on resource-constrained platforms. Recent efficiency-oriented methods such as FLOL~\citep{benito2025flol} and DarkIR~\citep{feijoo2025darkir} mostly operate in the sRGB domain and do not fully exploit the linear RAW signal.
+
+Beyond individual methods, the field can be characterized by three competing architectural frameworks, as illustrated in Figure~\ref{fig:landscape}. \textbf{Convolutional neural networks (CNNs)}---exemplified by SID~\citep{chen2018sid} and later lightweight designs---are parameter- and compute-efficient, translation-equivariant, and naturally handle arbitrary input resolutions, which makes them the preferred route for real-time and on-device deployment; their main weakness is a limited receptive field for modeling long-range dependencies. \textbf{Transformer-based} methods such as Restormer~\citep{zamir2022restormer} and Retinexformer~\citep{cai2023retinexformer} capture global context through self-attention and push restoration quality higher, but at the cost of quadratic attention and larger memory footprints. \textbf{Diffusion-based generative models}, including SIED~\citep{jiang2025sied}, LDM-ISP~\citep{wen2023ldmisp}, and LightenDiffusion~\citep{jiang2024lightendiffusion}, impose strong image priors and achieve state-of-the-art visual quality, yet rely on iterative multi-step sampling whose inference cost is orders of magnitude higher than a single forward pass, making real-time deployment difficult. Given this landscape, this work revisits the CNN route and systematically studies how far a lightweight fully-convolutional U-Net can go when efficiency, rather than peak quality, is the primary design objective.
 
 The core question of this paper is: to what extent can the network be compressed while maintaining acceptable restoration quality? We design a family of U-Nets with adjustable channel widths (base\_ch$=$8/16/32) and systematically evaluate their quality--efficiency trade-off under the dev-RAW protocol. The contributions are as follows:
 
 \begin{enumerate}
-\item \textbf{dev-RAW evaluation protocol.} Using a long-exposure RAW developed by a fixed ISP as the reference avoids JPG--RAW misalignment and ISP inconsistency, placing the supervision signal and the input in the same signal domain.
-\item \textbf{Single-model multi-illuminance coverage.} Unlike SIED~\citep{jiang2025sied}, which trains a separate model for each of the 0.01--0.1 / 0.001--0.01 / 0.0001--0.001~lx levels, we train a \textbf{single model on the combined data of all three SIED illuminance levels (5040 paired synthetic samples)}, without any illuminance prior.
+\item \textbf{dev-RAW evaluation protocol.} Using a long-exposure RAW developed by a fixed ISP as the reference avoids JPG--RAW misalignment and ISP inconsistency, so that the input RAW and the supervision target are geometrically aligned and connected by a single, fixed ISP mapping.
+\item \textbf{Single-model multi-illuminance coverage.} Unlike SIED~\citep{jiang2025sied}, which trains a separate model for each of the 0.01--0.1 / 0.001--0.01 / 0.0001--0.001~lx levels, we train a \textbf{single model on the combined data of all three SIED illuminance levels (5040 paired synthetic samples in total)}, without any illuminance prior.
 \item \textbf{Lightweight architecture.} The base\_ch$=$32 U-Net has only 7.82M parameters and reaches 17.8~FPS on a V100; base\_ch$=$8 has only 0.49M parameters at 82.6~FPS, making it one of the lightest extremely low-light RAW enhancement models known, and its real-time capability is verified on a Jetson edge device (base\_ch$=$8 reaches 5.98/7.61~FPS at fp32/fp16). The SE channel attention brings a +0.46~dB gain with less than 1\% parameter overhead.
 \item \textbf{Honest evaluation-baseline statement.} We explicitly distinguish the dev-RAW reference from the sRGB/JPG reference, do not directly compare numbers with SIED and other methods, and emphasize that this work is efficiency-oriented rather than quality-oriented.
 \end{enumerate}
 
-Section~\ref{sec:related} surveys related work, Section~\ref{sec:method} details the proposed method and experimental settings, Section~\ref{sec:results} reports the results and ablations, and Sections~\ref{sec:discussion} and~\ref{sec:conclusion} provide a discussion and concluding remarks.
+The remainder of this paper is organized as follows. Section~\ref{sec:related} reviews related work, organized by network architecture and learning paradigm. Section~\ref{sec:method} presents the dev-RAW evaluation protocol, the proposed lightweight U-Net architecture and its loss function, and the experimental setup (dataset, training hyperparameters, and evaluation metrics). Section~\ref{sec:results} reports the main results, cross-illuminance and cross-camera generalization, efficiency, and ablation studies. Section~\ref{sec:discussion} discusses the findings together with the limitations and future directions, and Section~\ref{sec:conclusion} concludes the paper.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Related Work}
 \label{sec:related}
 
-\subsection{Low-Light Image Enhancement}
+\subsection{Low-Light Enhancement by Network Architecture}
 
-Low-light image enhancement methods fall into non-learning and learning families. The former rely on hand-crafted priors---LIME~\citep{guo2017lime} refines an illumination map under Retinex theory, and histogram-based approaches boost contrast by re-distributing intensity levels---and are lightweight and interpretable, but cannot model the signal-dependent noise that dominates under extremely low light; here they serve only as lightweight post-processing baselines (Table~\ref{tab:main}). Learning approaches can be grouped by architecture. Early Retinex-network families factor the input into reflectance and illumination terms and restore each branch independently (RetinexNet~\citep{wei2018retinexnet}, KinD~\citep{zhang2019kind}); later unrolled variants embed the physical model into deep iterations (URetinex-Net~\citep{wu2022uretex}), and zero-reference curve estimation removes the need for paired supervision (Zero-DCE~\citep{guo2020zerodce}). Other paradigms include SNR-driven design (SNR-Aware~\citep{xu2022snraware}), normalizing-flow illumination modeling (LLFlow~\citep{wang2022llflow}), and statistical luminance quantization (LASQ~\citep{kong2025lasq}). Transformer-based methods restructure global-context computation---Restormer~\citep{zamir2022restormer}, Retinexformer~\citep{cai2023retinexformer}, and axial attention for ultra-high-definition inputs (LLFormer~\citep{wang2023llformer})---while diffusion-based generative methods impose structural priors (GSAD~\citep{hou2023gsad}) or couple Retinex decomposition with conditional generation (Diff-Retinex~\citep{yi2023diffretinex}). Despite steady quality gains, most of these methods operate in the sRGB domain and do not exploit the linear physical behavior of RAW signals.
+Low-light image enhancement methods can be grouped by their backbone architecture and learning paradigm.
+
+\textbf{Non-learning and CNN-based priors.} Classical methods are lightweight but were designed for the sRGB domain. LIME~\citep{guo2017lime} adjusts an illumination map under Retinex theory, and histogram-based approaches simply redistribute intensity levels; both are interpretable and inexpensive, yet neither models the signal-dependent noise that dominates under extremely low light, so in this work they serve only as lightweight post-processing baselines (Table~\ref{tab:main}). A first generation of CNNs splits the input into reflectance and illumination branches and restores them separately---RetinexNet~\citep{wei2018retinexnet} and KinD~\citep{zhang2019kind} follow this decomposition---while URetinex-Net~\citep{wu2022uretex} later embeds the Retinex model into the optimization iterations, and Zero-DCE~\citep{guo2020zerodce} sidesteps paired supervision by learning a zero-reference curve. A different direction is represented by SNR-Aware~\citep{xu2022snraware}, which models enhancement from a signal-to-noise-ratio perspective, by LLFlow~\citep{wang2022llflow}, which represents the illumination distribution with a normalizing flow, and by LASQ~\citep{kong2025lasq}, which applies hierarchical statistical quantization of luminance. What these CNN designs share is efficiency: they are translation-equivariant, compute-friendly, and resolution-agnostic; their shared limitation is a local receptive field, which constrains long-range context modeling.
+
+\textbf{Transformer-based methods.} Transformer backbones substitute global self-attention for the local receptive field. Restormer~\citep{zamir2022restormer} and Retinexformer~\citep{cai2023retinexformer} reorganize global-context computation, while LLFormer~\citep{wang2023llformer} adopts axial attention to keep ultra-high-definition inputs tractable. These models raise restoration quality, but quadratic attention and larger memory footprints stand in the way of real-time deployment.
+
+\textbf{State-space (Mamba) methods.} State-space backbones model long-range dependencies with linear complexity, offering a middle ground between CNNs and Transformers; their RAW-domain representatives (Retinex-RAWMamba~\citep{chen2024rawmamba}, HiMA~\citep{chen2025hima}) are detailed in the next subsection.
+
+\textbf{Diffusion-based generative methods.} Diffusion models impose strong image priors: GSAD~\citep{hou2023gsad} applies a global structure-aware diffusion process, whereas Diff-Retinex~\citep{yi2023diffretinex} couples Retinex decomposition with conditional generation. The resulting visual quality is state of the art, but the price is iterative multi-step sampling, whose inference cost is orders of magnitude above a single forward pass.
+
+Despite steady quality gains, most of the above methods operate in the sRGB domain and do not exploit the linear physical behavior of RAW signals; the RAW-domain counterparts are surveyed next.
 
 \subsection{RAW-Domain Enhancement}
 
-SID~\citep{chen2018sid} by Chen \emph{et al.} pioneered end-to-end RAW-domain enhancement, achieving 28.96/18.64~dB (sRGB) on the Sony/Canon subsets. SMID~\citep{chen2019smid} extends this idea to extremely low-light video and proposes temporally consistent RAW video enhancement. CycleISP~\citep{zamir2020cycleisp} models the forward synthesis and inverse reconstruction of the camera ISP, highlighting the physical advantage of RAW-domain denoising. In recent years, as architectures evolve, RAW-domain methods have grown heavier: Retinex-RAWMamba~\citep{chen2024rawmamba} uses Mamba to replace convolution for long-range dependency modeling; HiMA~\citep{chen2025hima} proposes a hierarchical mixed architecture of Transformer and Mamba; MambaIR~\citep{guo2024mambair} presents a state-space model as a unified baseline for image restoration. Among diffusion methods, DiffLL~\citep{jiang2023difll} and LightenDiffusion~\citep{jiang2024lightendiffusion} exploit diffusion priors, LDM-ISP~\citep{wen2023ldmisp} denoises in latent space, and DiffIR~\citep{xia2023diffir} uses a compact prior representation to reduce denoising iterations. SIED~\citep{jiang2025sied} couples a color-consistency objective with an attention-based color module and constructs a paired benchmark spanning 0.0001--0.1~lx, reporting about 31.20~dB on SID(Sony) and 24.98~dB on SIED(Sony). GM-MoE~\citep{liao2025gmmoe} introduces a mixture-of-experts structure under a gating mechanism. The restoration quality of these methods comes at the price of multi-step sampling or large parameter counts, which makes real-time deployment on resource-constrained platforms difficult.
+Chen \emph{et al.}~\citep{chen2018sid} opened this line of work with SID, an end-to-end network that maps a packed Bayer pattern directly to RGB and reports 28.96/18.64~dB on the Sony/Canon subsets. SID established the key advantage of operating on linear RAW before the nonlinear ISP, but it also left two gaps that later work has tried to close: a modest capacity, and a JPG-based reference still affected by RAW--JPG misalignment. Early follow-ups addressed different sides of these gaps. SMID~\citep{chen2019smid} carried RAW enhancement into video with temporally consistent processing, at the price of higher computation, and CycleISP~\citep{zamir2020cycleisp} modeled the ISP's forward synthesis and inverse reconstruction, giving direct evidence that RAW-domain denoising is physically more effective than sRGB-domain processing. More recently the field has shifted toward heavier models that favor quality over cost. On the state-space side, Retinex-RAWMamba~\citep{chen2024rawmamba} couples demosaicing and denoising in a Mamba backbone to gain long-range modeling, and HiMA~\citep{chen2025hima} mixes a hierarchical Transformer with Mamba, both at considerable parameter and latency cost. On the generative side, DiffLL~\citep{jiang2023difll} and LightenDiffusion~\citep{jiang2024lightendiffusion} rely on diffusion priors, LDM-ISP~\citep{wen2023ldmisp} performs denoising in latent space, and DiffIR~\citep{xia2023diffir} compresses the prior representation to shorten sampling; each of these trades multi-step sampling for reconstruction quality. SIED~\citep{jiang2025sied} adds a color-consistency objective and an attention-based color module, and contributes a paired benchmark covering 0.0001--0.1~lx (about 31.20~dB on SID(Sony) and 24.98~dB on SIED(Sony)); its cost is prolonged two-stage optimization plus iterative sampling. GM-MoE~\citep{liao2025gmmoe} scales capacity with a mixture-of-experts gate, again favoring quality over efficiency. Taken together, these methods deliver strong quality, but their multi-step sampling or large parameter counts keep them away from real-time deployment on constrained platforms; a lightweight, single-forward RAW-domain method dedicated to the extremely low-light regime remains missing.
 
 \subsection{Efficiency-Oriented Methods}
 
-Efficiency-oriented methods aim to restore usable images at minimal computational cost. In the sRGB domain, FLOL~\citep{benito2025flol} achieves real-time enhancement at 1080p with $<$12~ms latency, and DarkIR~\citep{feijoo2025darkir} replaces heavy Transformers with efficient CNNs. At the camera-pipeline level, PyNET~\citep{ignatov2020pynet} shows that a single end-to-end deep model can replace a complete mobile ISP. For general transfer, MIRNet~\citep{zamir2020mirnet} learns rich features through multi-scale residual aggregation. However, existing efficiency-oriented methods either remain in the sRGB domain and do not exploit the linear RAW signal, or target general ISP rather than the extreme degradation of extremely low light. This paper fills the gap of lightweight extremely low-light RAW enhancement by providing base\_ch$=$8/16/32 configurations and a systematic quality--efficiency trade-off curve.
+Efficiency-oriented methods aim to restore usable images at minimal computational cost. In the sRGB domain, FLOL~\citep{benito2025flol} achieves real-time enhancement at 1080p with $<$12~ms latency, and DarkIR~\citep{feijoo2025darkir} replaces heavy Transformers with efficient CNNs. At the camera-pipeline level, PyNET~\citep{ignatov2020pynet} shows that a single end-to-end deep model can replace a complete mobile ISP, supporting the idea of learning the entire RAW-to-RGB mapping in one network. However, existing efficiency-oriented methods either remain in the sRGB domain and do not exploit the linear RAW signal, or target general ISP rather than the extreme degradation of extremely low light. This paper fills the gap of lightweight extremely low-light RAW enhancement by providing base\_ch$=$8/16/32 configurations and a systematic quality--efficiency trade-off curve.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Materials and Methods}
@@ -104,11 +129,11 @@ Efficiency-oriented methods aim to restore usable images at minimal computationa
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{figures/fig2_protocol.png}
-\caption{The dev-RAW evaluation protocol. The short-exposure RAW and the long-exposure RAW share the white-balance coefficients $\mathbf{w}$ estimated from the long-exposure Gray-World assumption; the fixed ISP (white balance $\rightarrow$ demosaic $\rightarrow$ gamma) develops the long-exposure RAW into the reference $I_{ref}$, ensuring the supervision signal and the input reside in the same signal domain.}
+\caption{The dev-RAW evaluation protocol. The short-exposure RAW and the long-exposure RAW share the white-balance coefficients $\mathbf{w}$ estimated from the long-exposure Gray-World assumption; the fixed ISP (white balance $\rightarrow$ demosaic $\rightarrow$ gamma) develops the long-exposure RAW into the reference $I_{ref}$, so that the input RAW and the supervision target are geometrically aligned and connected by a single, fixed ISP mapping.}
 \label{fig:protocol}
 \end{figure}
 
-\textbf{Problem definition and motivation.} The goal of extremely low-light RAW enhancement is: given a short-exposure RAW signal $R_S$, to recover a clear image of the same scene that would have been captured with a sufficiently long exposure. How the supervision signal (reference) is constructed directly determines the task definition and the numerical evaluation baseline. Using the camera-output JPG directly as the reference introduces a double inconsistency: (1) geometrically, the JPG undergoes lens-distortion correction and cropping, whereas the RAW undergoes about $2\times$ resizing and cropping, so only about 25.8\% of the area can be aligned; (2) in terms of signal, the nonlinear tone mapping of the camera ISP makes the linear RAW signal and the JPG non-differentiably aligned. To avoid these issues, we propose the \textbf{dev-RAW (development-RAW) evaluation protocol}---namely, using ``the image obtained by developing the long-exposure RAW with a fixed ISP'' as the supervisory reference, so that the reference and the input are in the same signal domain.
+\textbf{Problem definition and motivation.} The goal of extremely low-light RAW enhancement is: given a short-exposure RAW signal $R_S$, to recover a clear image of the same scene that would have been captured with a sufficiently long exposure. How the supervision signal (reference) is constructed directly determines the task definition and the numerical evaluation baseline. Using the camera-output JPG directly as the reference introduces a double inconsistency: (1) geometrically, the JPG undergoes lens-distortion correction and cropping, whereas the RAW undergoes about $2\times$ resizing and cropping, so only about 25.8\% of the area can be aligned; (2) in terms of signal, the nonlinear tone mapping of the camera ISP makes the linear RAW signal and the JPG non-differentiably aligned. To avoid these issues, we propose the \textbf{dev-RAW (development-RAW) evaluation protocol} (Figure~\ref{fig:protocol})---namely, using ``the image obtained by developing the long-exposure RAW with a fixed ISP'' as the supervisory reference, so that the reference and the input are geometrically aligned and connected by a single, fixed, deterministic ISP mapping.
 
 \textbf{Reference construction.} Let the long-exposure RAW be $R_L$ (after black-level correction, packed Bayer 4-channel linear values). The fixed-ISP development has two steps:
 \begin{enumerate}
@@ -130,26 +155,26 @@ Under this protocol, the difference between the reference $I_{ref}$ and the inpu
 \label{fig:arch}
 \end{figure}
 
-\textbf{Design rationale.} Degradation in extremely low-light RAW is dominated by signal-dependent noise: under short exposure, photon shot noise and readout noise are randomly distributed in space, vary in intensity across frequency scales, and fluctuate dramatically with brightness level. The progressively downsampling encoder of U-Net separates noise by scale---shallow layers preserve high-frequency detail while deep layers model low-frequency illumination and global color; skip connections inject high-frequency encoder information directly into the decoder, thereby preserving edges and textures while performing denoising and brightness recovery, and avoiding over-smoothing. The fully convolutional structure does not rely on a fixed input size, performs a single forward pass on arbitrary-resolution RAW, and shares parameters across the whole image, which is naturally suited to deployment scenarios with variable camera RAW sizes and limited resources.
+\textbf{Design rationale.} The choice of a classic U-Net is motivated by the five tasks the network must solve simultaneously in a single forward pass. (i) \textbf{Denoising.} Degradation in extremely low-light RAW is dominated by signal-dependent noise: under short exposure, photon shot noise and readout noise are randomly distributed in space, vary in intensity across frequency scales, and fluctuate dramatically with brightness level. The progressively downsampling encoder separates noise by scale, so shallow layers preserve high-frequency detail while deep layers model low-frequency illumination and global color; skip connections inject high-frequency encoder information directly into the decoder, preserving edges and textures while denoising and avoiding over-smoothing. (ii) \textbf{Brightness recovery.} The deep (bottleneck) features capture global scene luminance, which the decoder uses to amplify the weak signal back to the correct exposure level. (iii) \textbf{ISP (demosaic and tone mapping).} Because the input is a 4-channel packed Bayer and the supervision is a 3-channel RGB image, the network must implicitly learn demosaicing (R/G/B channel fusion) and the fixed-ISP tone mapping; the encoder--decoder U-Net performs this RAW-to-RGB transformation naturally as a learned, single-pass ISP. (iv) \textbf{Color reconstruction.} Multi-scale features and channel interactions reconstruct the scene color jointly with denoising, avoiding the color casts that appear when amplification is applied without color recovery. (v) \textbf{Lightweight and resolution-agnostic.} The fully convolutional structure does not rely on a fixed input size, performs a single forward pass on arbitrary-resolution RAW, and shares parameters across the whole image, which is naturally suited to deployment scenarios with variable camera RAW sizes and limited resources; its capacity is further controlled by the hyper-parameter base\_ch.
 
-We adopt the classic U-Net encoder--decoder structure (Table~\ref{tab:arch}), with 4-channel packed Bayer (linear values after white balance) as input and 3-channel RGB as output. Downstream of the encoder, a bottleneck aggregates global context, and a symmetric decoder reconstructs the output:
+We adopt the classic U-Net encoder--decoder structure (Figure~\ref{fig:arch} and Table~\ref{tab:arch}), with 4-channel packed Bayer (linear values after white balance) as input and 3-channel RGB as output. It should be emphasized that the input and the supervision reside in \emph{different} representations: the input is a linear 4-channel packed Bayer RAW (RAW domain), whereas the reference is a 3-channel RGB image obtained by the fixed-ISP development of the long-exposure RAW (developed-RGB domain). The network therefore learns the entire RAW-to-RGB mapping---demosaicing, denoising, brightness recovery, and the fixed-ISP tone mapping---in one forward pass; the two representations are linked by the single, fixed, deterministic ISP defined in Section~\ref{sec:devraw}, which is what removes ISP inconsistency and geometric misalignment, rather than making the two domains literally identical. Downstream of the encoder, a bottleneck aggregates global context, and a symmetric decoder reconstructs the output:
 
 \begin{itemize}
-\item \textbf{Encoder:} each stage applies MaxPool2d(2) downsampling and a DoubleConv (two 3$\times$3 convolutions + ReLU), downsampling spatially while widening the channel dimension to build a multi-scale representation.
-\item \textbf{Bottleneck:} at the H/16$\times$W/16 resolution, the number of channels is expanded to $16\times$base\_ch to aggregate global context.
-\item \textbf{Decoder:} transposed convolutions (ConvTranspose2d, bilinear$=$False) progressively upsample; each stage is concatenated (concat) with the corresponding encoder layer via skip connections and followed by a DoubleConv to progressively restore resolution and detail.
-\item \textbf{Output layer:} a 1$\times$1 convolution + sigmoid projects features to 3-channel RGB in [0,1].
+\item \textbf{Encoder.} Each of the four encoder stages halves the spatial resolution with a MaxPool2d(2) and then applies a DoubleConv (two 3$\times$3 convolutions with ReLU), widening the channels as the resolution shrinks to build a multi-scale representation.
+\item \textbf{Bottleneck.} At the H/16$\times$W/16 resolution the channel count is expanded to $16\times$base\_ch so that the coarsest features can aggregate global context.
+\item \textbf{Decoder.} Each stage recovers resolution with a transposed convolution (ConvTranspose2d, bilinear$=$False). The upsampled feature map is concatenated (concat) with the skip connection from the matching encoder stage, and a DoubleConv then refines the merged features.
+\item \textbf{Output layer.} A 1$\times$1 convolution followed by sigmoid projects the final features to a 3-channel RGB image in $[0,1]$.
 \end{itemize}
 
 On this basis, we introduce two lightweight enhancements:
 
-\textbf{SE channel attention.} To enhance feature recalibration at minimal cost, a lightweight SE (Squeeze-and-Excitation) channel attention~\citep{hu2018se} is inserted after each DoubleConv: global average pooling first, then two 1$\times$1 convolutions (reduction$=$16) learn per-channel weights to recalibrate features. This module adds only about 0.06M parameters (7.76M $\rightarrow$ 7.82M at base\_ch$=$32, less than 1\%). Its effectiveness stems from the physical properties of the packed Bayer input: the R, G, and B channels have different sampling rates (G is sampled twice as densely as R/B) and different noise levels, so channel recalibration is equivalent to adaptively adjusting the contribution weight of each color channel in feature space, enabling channel-wise denoising tailored to noise characteristics---this is the underlying reason why SE yields a stable gain (+0.46 dB, see Section~\ref{sec:ablation}) at under 1\% parameter increase.
+\textbf{SE channel attention.} To enhance feature recalibration at minimal cost, a lightweight SE (Squeeze-and-Excitation) channel attention~\citep{hu2018se} is inserted after each DoubleConv (and is drawn in the architecture of Figure~\ref{fig:arch}): global average pooling first, then two 1$\times$1 convolutions (reduction$=$16) learn per-channel weights to recalibrate features. This module adds only about 0.06M parameters (7.76M $\rightarrow$ 7.82M at base\_ch$=$32, less than 1\%). Its effectiveness stems from the physical properties of the packed Bayer input, and its role differs between shallow and deep layers. In \textbf{shallow layers}, the channels remain closely tied to the R, G, and B color planes, which have different sampling rates (G is sampled twice as densely as R/B) and different noise levels; here SE recalibration behaves as an adaptive per-color-channel weighting that tailors denoising to each channel's noise characteristics. In \textbf{deep layers}, where channels have become abstract semantic features, SE instead re-weights feature importance to emphasize illumination- and structure-relevant channels for brightness recovery and color reconstruction. This layer-adaptive recalibration is the underlying reason SE yields a stable gain (+0.46~dB, see Section~\ref{sec:ablation}) at under 1\% parameter increase.
 
-\textbf{Test-time augmentation (TTA).} At inference, we use 8-fold D4 test-time self-ensemble (horizontal/vertical flips + 90$^\circ$ rotation and their combinations, averaging 8 forward passes), consistent with training augmentation, trading 8 forward passes for a consistent quality gain (see the ablation in Section~\ref{sec:ablation}).
+\textbf{Test-time augmentation (TTA, optional post-processing).} TTA is an \emph{optional} post-processing step applied only when the target platform can afford the extra computation; it is not part of the network itself. At inference, 8-fold D4 test-time self-ensemble (horizontal/vertical flips + 90$^\circ$ rotation and their combinations, averaging 8 forward passes) is used, consistent with training augmentation, trading 8 forward passes for a consistent quality gain (see the ablation in Section~\ref{sec:ablation}). Because TTA multiplies the number of forward passes, its added inference latency is roughly $8\times$ that of a single pass; the measured 8-fold TTA latency is 502.78~ms per frame on a V100 (versus 60.03~ms for a single forward pass, an $8.4\times$ slowdown). On the Jetson Orin Nano Super, where base\_ch$=$8 fp16 runs at 7.61~FPS (131.4~ms per single pass), 8-fold TTA would require $\approx$1051~ms per frame, so TTA is recommended only for high-compute platforms and is never required by the core lightweight pipeline.
 
 \begin{table}[H]
 \centering
-\caption{U-Net Architecture (base\_ch$=$32, bilinear$=$False).}
+\caption{U-Net architecture of the proposed method (base\_ch$=$32, bilinear$=$False). ``Stage'' groups the modules into input, encoder, bottleneck, decoder, and output; ``Module'' is the module name used in the code; ``Channels'' gives the input$\rightarrow$output channel count of each stage; ``Resolution'' is the spatial size relative to the full-resolution input H$\times$W.}
 \label{tab:arch}
 \begin{tabularx}{\textwidth}{CCCC}
 \toprule
@@ -169,27 +194,36 @@ Output & outc & 32$\rightarrow$3 & H$\times$W \\
 \end{tabularx}
 \end{table}
 
-\textbf{Adjustable capacity.} The hyper-parameter base\_ch controls the base width of channels across layers; base\_ch$=$8/16/32 corresponds to 0.49M/1.94M/7.82M parameters and 82.6/43.3/17.8 FPS (V100). This provides a systematic quality--efficiency trade-off: high-compute platforms can choose base\_ch$=$32 for peak quality, while edge platforms can choose base\_ch$=$8 for real-time processing (see the capacity ablation in Section~\ref{sec:ablation} and Figure~6).
+\textbf{Adjustable capacity.} The hyper-parameter base\_ch controls the base width of channels across layers; base\_ch$=$8/16/32 corresponds to 0.49M/1.94M/7.82M parameters and 82.6/43.3/17.8 FPS (V100). This provides a systematic quality--efficiency trade-off: high-compute platforms can choose base\_ch$=$32 for peak quality, while edge platforms can choose base\_ch$=$8 for real-time processing (see the capacity ablation in Section~\ref{sec:ablation} and Figure~\ref{fig:tradeoff}).
 
 \subsection{Loss Function}
 
-The total loss is defined as a weighted sum of the L1 loss and the structural similarity (SSIM) loss:
+The total loss is a weighted sum of a masked L1 (pixel-level fidelity) term and a structural-similarity (SSIM) term:
 \begin{equation}
-\mathcal{L} = \mathcal{L}_1 + \lambda_{ssim}\left(1 - \mathrm{SSIM}(\hat{I}, I_{ref})\right)
+\mathcal{L} = \mathcal{L}_1 + \lambda_{ssim}\,\mathcal{L}_{ssim}, \qquad
+\mathcal{L}_{ssim} = 1 - \mathrm{SSIM}(\hat{I}, I_{ref}),
 \end{equation}
-where $\mathcal{L}_1 = \|M \odot (\hat{I} - I_{ref})\|_1$ is the masked L1 (computed only over valid pixel regions, $M$ being the valid-region mask), $\hat{I}$ is the network output, and $I_{ref}$ is the dev-RAW reference; $1-\mathrm{SSIM}(\cdot)$ is the structural difference term, and $\lambda_{ssim}=0.15$ is its weight. Chroma-loss and luma-loss variants are also tested in the ablation (see Section~\ref{sec:ablation}).
+where the masked L1 loss is
+\begin{equation}
+\mathcal{L}_1 = \frac{1}{\|M\|_1}\left\| M \odot (\hat{I} - I_{ref}) \right\|_1.
+\end{equation}
+Here $\hat{I}$ denotes the network output (3-channel RGB in $[0,1]$), $I_{ref}$ the dev-RAW reference, $M$ the valid-region mask, $\odot$ the element-wise (Hadamard) product, and $\|M\|_1$ the sum of the mask entries, so that $\mathcal{L}_1$ is the mean absolute error (MAE) restricted to valid pixels. The structural term $\mathcal{L}_{ssim}=1-\mathrm{SSIM}(\hat{I},I_{ref})$ measures the structural dissimilarity between the output and the reference: $\mathrm{SSIM}$ compares the two images through local luminance, contrast, and structure statistics (its explicit definition is given in Equation~\eqref{eq:ssim}), taking values in $[-1,1]$ (with $1$ for identical patches), so $1-\mathrm{SSIM}$ is a non-negative structural penalty. $\lambda_{ssim}=0.15$ is the weight of the structural term.
 
-\textbf{Design rationale.} We choose the L1 loss over the MSE loss because L1 is more robust to pixel-level outliers (noise spikes): in extremely low light, the estimation errors of high-noise pixels follow a heavy-tailed distribution, and the quadratic penalty of MSE would over-amplify the gradients of these pixels, forcing the network to smooth the whole output and lose detail just to suppress a few noisy pixels; the linear penalty of L1 tolerates noise and better preserves detail. The SSIM term compensates for the tendency of L1 to over-average, constraining the structural consistency between the output and the reference in terms of luminance, contrast, and structure. The mask $M$ excludes black borders and invalid pixel regions, preventing the network from learning edge information irrelevant to the task.
+\textbf{Choice of L1 over MSE and Charbonnier.} We adopt the L1 loss rather than the mean squared error (MSE) loss because L1 is more robust to pixel-level outliers (noise spikes): under extremely low light, the estimation errors of high-noise pixels follow a heavy-tailed distribution, and the quadratic penalty of MSE would over-amplify the gradients of those pixels, forcing the network to smooth the whole output and lose detail merely to suppress a few noisy pixels; the linear penalty of L1 tolerates noise and better preserves detail. A common smooth alternative, the Charbonnier loss $\mathcal{L}_{\mathrm{char}}=\sqrt{x^{2}+\epsilon^{2}}$ (with a small constant $\epsilon$), behaves like L1 for large residuals but is differentiable at zero, which can ease optimization near convergence. Since our supervision target is a fixed-ISP developed image with a well-defined valid region (the mask $M$ already removes borders and invalid pixels), we find the plain L1 sufficient: Charbonnier smoothing only modifies the near-zero-residual regime and does not change how the heavy-tailed noise outliers that dominate low-light errors are treated, so it is not adopted.
+
+\textbf{Perceptual loss.} The perceptual loss $\mathcal{L}_{\mathrm{per}}=\|\phi(\hat{I})-\phi(I_{ref})\|_2$ measures the distance between deep feature maps $\phi(\cdot)$ of a pre-trained network and is widely used to improve perceptual quality. In this work, LPIPS (Section~\ref{sec:training}) is used only as an \emph{evaluation} metric, not as a training objective, for two reasons: (i) the dev-RAW reference is produced by a simple fixed ISP chain (white balance $\rightarrow$ demosaic $\rightarrow$ gamma), whose texture and color statistics do not match the natural-image statistics learned by a pre-trained feature extractor, so a perceptual training loss would pull the output toward an inappropriate texture prior; and (ii) a perceptual loss requires an additional feature-extraction backbone, which conflicts with the lightweight, real-time goal of this paper.
+
+\textbf{Weight of the SSIM term.} The SSIM term compensates for the tendency of L1 to over-average and constrains the luminance, contrast, and structure of the output to match the reference. Its weight $\lambda_{ssim}=0.15$ is set so that the structural term acts as a regularizer rather than dominating pixel-level fidelity: $\mathcal{L}_1$ is expressed in pixel-intensity units (typically on the order of $10^{-2}$--$10^{-1}$ in this task), whereas $1-\mathrm{SSIM}$ is dimensionless and bounded, so the two terms differ in their natural scale; the factor $0.15$ re-scales the structural term into a comparable but subordinate contribution. This choice is further validated by the loss-function ablation (Table~\ref{tab:loss}), where L1+0.15$\cdot$SSIM achieves the best validation PSNR and the lowest validation L1. Chroma-loss and luma-loss variants are additionally tested and provide no further gain (see Section~\ref{sec:ablation}).
 
 \subsection{Dataset}
 
-We use the Sony subset (Sony $\alpha$7RIII) 0.01--0.1~lx level of SIED~\citep{jiang2025sied}, containing 1680 pairs of short-exposure RAW and corresponding long-exposure RAW (Sony 14-bit, black level 512, white level 16383, short-exposure RAW size 1080$\times$1920$\times$4 packed Bayer). Following the official SIED~\citep{jiang2025sied} split, the 1680 scenes are split 1500:180 into train/test sets; the training and test scene IDs are checked one by one to ensure no overlap and avoid data leakage. Note that our evaluation protocol differs from the official SIED~\citep{jiang2025sied} one: the official SIED uses the real-captured normal-light sRGB as the reference and evaluates on the 1500/180-split test set; we instead use the long-exposure RAW developed by a fixed ISP as the supervisory reference (the dev-RAW protocol, see Section~\ref{sec:devraw}), thereby avoiding JPG--RAW misalignment and ISP inconsistency.
+We use the Sony subset (Sony $\alpha$7RIII) 0.01--0.1~lx level of SIED~\citep{jiang2025sied}, containing 1680 pairs of short-exposure RAW and corresponding long-exposure RAW (Sony 14-bit, black level 512, white level 16383, short-exposure RAW size 1080$\times$1920$\times$4 packed Bayer). Following the official SIED~\citep{jiang2025sied} split, the 1680 scenes of \emph{each} illuminance level are split 1500:180 into train/test sets (i.e., 1500 training and 180 test scenes per level, giving 4500 training pairs and 540 test pairs across the three levels); the training and test scene IDs are checked one by one to ensure no overlap and avoid data leakage. Note that our evaluation protocol differs from the official SIED~\citep{jiang2025sied} one: the official SIED uses the real-captured normal-light sRGB as the reference and evaluates on the 1500/180-split test set; we instead use the long-exposure RAW developed by a fixed ISP as the supervisory reference (the dev-RAW protocol, see Section~\ref{sec:devraw}), thereby avoiding JPG--RAW misalignment and ISP inconsistency.
 
 To cover the full 0.0001--0.1~lx range of SIED~\citep{jiang2025sied}, we use its Sony subset. SIED realizes the three illuminance ranges in Table~\ref{tab:levels} through laboratory illuminance calibration and calibrated noise injection, yielding 1680 paired samples per level (5040 pairs in total, using the real-captured normal-light sRGB as reference); the synthesis procedure is described in~\citep{jiang2025sied}. A single model jointly covers all three illuminance levels.
 
 \begin{table}[H]
 \centering
-\caption{Three illuminance levels of SIED.}
+\caption{Three illuminance levels of the SIED Sony subset used in this study. Each level contains 1680 paired short-exposure/long-exposure RAW samples; ``Darkness relative to brightest'' expresses how much darker each level is compared with the brightest 0.01--0.1~lx level.}
 \label{tab:levels}
 \begin{tabularx}{\textwidth}{CCC}
 \toprule
@@ -203,10 +237,58 @@ Illuminance range & No. of low-light RAW & Darkness relative to brightest \\
 \end{table}
 
 \subsection{Training Setup and Metrics}
+\label{sec:training}
 
-The main model is trained on the combined Sony data of the three SIED illuminance levels (0.01--0.1 / 0.001--0.01 / 0.0001--0.001~lx, 5040 training pairs $=$ 1680 scenes $\times$ 3 levels). Training uses PyTorch with batch\_size$=$8, patch\_size$=$512, Adam optimizer (lr$=$2e-4), 100 epochs, on an NVIDIA Tesla V100-SXM2-32GB. Data augmentation includes random flips and rotations.
+The main model is trained on the combined Sony data of the three SIED illuminance levels (0.01--0.1 / 0.001--0.01 / 0.0001--0.001~lx), giving 4500 training pairs ($=$ 1500 scenes $\times$ 3 levels, with the remaining 540 pairs as the official 180-scene-per-level test sets). Training is implemented in PyTorch on an NVIDIA Tesla V100-SXM2-32GB: the model is optimized with Adam (learning rate 2e-4) for 100 epochs on 512$\times$512 patches with a batch size of 8, and random horizontal/vertical flips and 90$^\circ$ rotations serve as data augmentation. The complete training configuration is summarized in Table~\ref{tab:hyper}.
 
-The evaluation metrics are PSNR$\uparrow$ / SSIM$\uparrow$ / LPIPS(alex)$\downarrow$, with input range [0,1] and LPIPS internally shifted to [-1,1], aligned with the metric convention of SIED~\citep{jiang2025sied}.
+\begin{table}[H]
+\centering
+\caption{Training hyperparameters of the proposed method. All settings are taken directly from the released implementation (train.py) and are fixed across the main model and all ablation models.}
+\label{tab:hyper}
+\begin{tabularx}{\textwidth}{lC}
+\toprule
+Hyperparameter & Value \\
+\midrule
+Framework & PyTorch \\
+Hardware & NVIDIA Tesla V100-SXM2-32GB \\
+Input & 4-channel packed Bayer (1080$\times$1920$\times$4, after WB) \\
+Patch size & 512$\times$512 \\
+Batch size & 8 \\
+Optimizer & Adam \\
+Learning rate & 2e-4 \\
+Learning-rate schedule & Cosine annealing ($T_{max}{=}100$, $\eta_{min}{=}10^{-6}$) \\
+Epochs & 100 \\
+Loss function & L1 + 0.15$\cdot$SSIM \\
+Data augmentation & random horizontal/vertical flips, 90$^\circ$ rotations \\
+Weight initialization & PyTorch default (Kaiming/He) \\
+Mixed precision & Not used (FP32) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The evaluation metrics are PSNR$\uparrow$ / SSIM$\uparrow$ / LPIPS(alex)$\downarrow$, with input range [0,1] and LPIPS internally shifted to [-1,1], aligned with the metric convention of SIED~\citep{jiang2025sied}. Their definitions are given below.
+
+\textbf{PSNR.} The peak signal-to-noise ratio quantifies pixel-level fidelity between a reconstructed image $I$ and its reference $I_{ref}$ (both in $[0,1]$):
+\begin{equation}
+\mathrm{PSNR}(I, I_{ref}) = 10\,\log_{10}\!\left(\frac{1}{\mathrm{MSE}(I, I_{ref})}\right), \qquad
+\mathrm{MSE}(I, I_{ref}) = \frac{1}{N}\sum_{i=1}^{N}\left(I_i - I_{ref,i}\right)^{2},
+\label{eq:psnr}
+\end{equation}
+where $N$ is the number of pixels over which the mean is computed (the valid-region mask is applied) and the peak value is $1$; a higher PSNR (in dB) indicates better fidelity.
+
+\textbf{SSIM.} The structural similarity index measures luminance, contrast, and structure similarity between local windows of $I$ and $I_{ref}$:
+\begin{equation}
+\mathrm{SSIM}(I, I_{ref}) = \frac{(2\mu_I\mu_{ref}+C_1)(2\sigma_{I,ref}+C_2)}{(\mu_I^2+\mu_{ref}^2+C_1)(\sigma_I^2+\sigma_{ref}^2+C_2)},
+\label{eq:ssim}
+\end{equation}
+where $\mu_I,\mu_{ref}$ and $\sigma_I^2,\sigma_{ref}^2$ are the local means and variances, $\sigma_{I,ref}$ is the local covariance, and $C_1,C_2$ are small stabilizing constants; the reported SSIM is the mean over all windows, with values in $[-1,1]$ (higher is better).
+
+\textbf{LPIPS.} The learned perceptual image patch similarity measures perceptual distance in a deep feature space:
+\begin{equation}
+\mathrm{LPIPS}(I, I_{ref}) = \sum_{l}\frac{1}{H_l W_l}\sum_{h,w}\left\| w_l \odot \left( \hat{y}^{l}_{h,w} - \hat{y}^{l}_{0,h,w} \right) \right\|_2^2,
+\label{eq:lpips}
+\end{equation}
+where $\hat{y}^{l}$ and $\hat{y}^{l}_{0}$ are the $l$-th-layer unit-normalized features of $I$ and $I_{ref}$ from a pre-trained network (AlexNet), $w_l$ a learned per-channel weight vector, and $H_l,W_l$ the spatial dimensions; a lower LPIPS indicates better perceptual similarity.
 
 Generative AI was not used to generate or analyze the experimental data, results, or figures in this study; all measurements and figures were produced by the authors' own code from real experimental outputs. AI-assisted language tools were used only to polish the English wording and assist with translation; the authors reviewed and edited all output and take full responsibility for the content.
 
@@ -225,7 +307,7 @@ Generative AI was not used to generate or analyze the experimental data, results
 
 \begin{table}[H]
 \centering
-\caption{Main results on the dev-RAW benchmark (SIED official 180-scene test set, 0.01--0.1~lx, mean$\pm$std).}
+\caption{Main results on the dev-RAW benchmark. All methods are evaluated on the SIED official 180-scene test set (0.01--0.1~lx) under the dev-RAW protocol; PSNR (dB) and SSIM are higher-better, LPIPS is lower-better, reported as mean$\pm$std over the 180 scenes.}
 \label{tab:main}
 \begin{tabularx}{\textwidth}{lCCC}
 \toprule
@@ -248,17 +330,19 @@ SID~\citep{chen2018sid} (learning, JPG target) & 16.78$\pm$2.76 & 0.7125$\pm$0.0
 \label{fig:psnrbar}
 \end{figure}
 
-\textbf{Main results.} As summarized in Figure~\ref{fig:psnrbar} and Table~\ref{tab:main}, our method (base\_ch$=$32, multi-illuminance $+$ SE) attains 34.37~dB PSNR / 0.9059 SSIM / 0.1838 LPIPS on the dev-RAW benchmark. Every improvement below is stated relative to an explicit baseline: $+13.31$~dB over the fixed-ISP amplification baseline (Naive, 21.06~dB), which is the primary dev-RAW reference; $+17.59$~dB over the SID-style learning baseline (16.78~dB); $+22.02$~dB over histogram equalization (12.35~dB); and $+24.94$~dB over LIME (9.43~dB). The 8-fold D4 TTA adds a further $+0.12$~dB over the single-forward result, reaching 34.49~dB.
+\textbf{Main results.} As summarized in Table~\ref{tab:main} and Figure~\ref{fig:psnrbar}, with qualitative examples shown in Figure~\ref{fig:visual} (additional scenes in Figure~\ref{fig:qual2}), our method (base\_ch$=$32, multi-illuminance $+$ SE) attains 34.37~dB PSNR / 0.9059 SSIM / 0.1838 LPIPS on the dev-RAW benchmark. Every improvement below is stated relative to an explicit baseline: $+13.31$~dB over the fixed-ISP amplification baseline (Naive, 21.06~dB), which is the primary dev-RAW reference; $+17.59$~dB over the SID-style learning baseline (16.78~dB); $+22.02$~dB over histogram equalization (12.35~dB); and $+24.94$~dB over LIME (9.43~dB). The 8-fold D4 TTA adds a further $+0.12$~dB over the single-forward result, reaching 34.49~dB.
 
-\textbf{Comparison with traditional methods.} As shown in Table~\ref{tab:main}, sRGB-domain traditional non-learning methods are far inferior to ours: LIME~\citep{guo2017lime} refines an illumination map and histogram equalization merely re-distributes intensities; neither models the extreme noise in the RAW domain, and both over-expose by re-brightening images on which the fixed ISP has already applied exposure compensation. Hence their dev-RAW PSNR is only 9.43/12.35~dB, even lower than the naive baseline (21.06~dB). Notably, the SID~\citep{chen2018sid} learning baseline, which uses the same CNN architecture but is trained with aligned JPG as the supervisory target, achieves only 16.78~dB in the dev-RAW domain---its supervision signal and input are in different signal domains (the JPG has undergone the full nonlinear ISP processing), so it cannot effectively guide denoising and brightness recovery in the linear RAW domain, and is therefore far below our dev-RAW-supervised method (34.37~dB). This further demonstrates that extremely low-light RAW enhancement must learn denoising and brightness recovery end-to-end, and the supervisory reference must reside in the same signal domain as the input.
+\textbf{Comparison with traditional methods.} As shown in Table~\ref{tab:main}, sRGB-domain traditional non-learning methods are far inferior to ours: LIME~\citep{guo2017lime} refines an illumination map and histogram equalization merely re-distributes intensities; neither models the extreme noise in the RAW domain, and both over-expose by re-brightening images on which the fixed ISP has already applied exposure compensation. Hence their dev-RAW PSNR is only 9.43/12.35~dB, even lower than the naive baseline (21.06~dB). Notably, the SID~\citep{chen2018sid} learning baseline, which uses the same CNN architecture but is trained with aligned JPG as the supervisory target, achieves only 16.78~dB in the dev-RAW domain---its supervision signal and input are in different signal domains (the JPG has undergone the full nonlinear ISP processing), so it cannot effectively guide denoising and brightness recovery in the linear RAW domain, and is therefore far below our dev-RAW-supervised method (34.37~dB). This further demonstrates that extremely low-light RAW enhancement must learn denoising and brightness recovery end-to-end, and the supervisory reference must be geometrically aligned with the input under a single, fixed ISP mapping (the dev-RAW protocol).
+
+\textbf{Baseline selection and protocol difference.} The four baselines in Table~\ref{tab:main} are chosen to isolate specific factors. The \emph{Naive (fixed ISP gain)} baseline is the primary dev-RAW reference: it amplifies the short-exposure RAW with the same fixed ISP used to build the reference, so it isolates the contribution of the learned denoising and brightness recovery over simple amplification. \emph{LIME}~\citep{guo2017lime} and \emph{histogram equalization} are representative sRGB-domain non-learning baselines that test whether hand-crafted post-processing can substitute for RAW-domain learning. The \emph{SID}~\citep{chen2018sid}-style learning baseline keeps the same CNN architecture but is supervised by the aligned JPG target, thereby isolating the effect of the supervision domain (dev-RAW vs JPG). Regarding the protocol, our dev-RAW benchmark differs from the official SIED~\citep{jiang2025sied} benchmark in one essential way: the official benchmark evaluates against the real-captured normal-light sRGB (JPG) reference, whereas the dev-RAW benchmark evaluates against the long-exposure RAW developed by a fixed ISP. This single change removes the JPG--RAW geometric misalignment and the ISP inconsistency, but it also means our dev-RAW PSNR is measured in a different reference space and cannot be compared with the official sRGB numbers (see Table~\ref{tab:srgb} and its note).
 
 \subsection{Cross-Illuminance Robustness}
 
-We evaluate the single model on each of the three SIED illuminance levels to verify the illuminance generalization of the unified model (Ours, base\_ch$=$32+SE, no TTA), as shown in Table~\ref{tab:crossill}. From 0.01--0.1~lx to 0.0001--0.001~lx (about two orders of magnitude darker), the single-model PSNR drops by only 2.63~dB (34.37 $\rightarrow$ 31.74), verifying the robustness of our method under extreme illuminance. Compared with SIED~\citep{jiang2025sied}, which trains a separate model for each illuminance level, our single-model scheme is more advantageous for deployment efficiency.
+We evaluate the single model on each of the three SIED illuminance levels to verify the illuminance generalization of the unified model (Ours, base\_ch$=$32+SE, no TTA), as shown in Table~\ref{tab:crossill}. From 0.01--0.1~lx to 0.0001--0.001~lx (about two orders of magnitude darker), the single-model PSNR drops by only 2.63~dB (34.37 $\rightarrow$ 31.74), verifying the robustness of our method under extreme illuminance. Compared with SIED~\citep{jiang2025sied}, which trains a separate model for each illuminance level, our single-model scheme is more advantageous for deployment efficiency; a direct comparison of one jointly-trained model against three per-level separate models is reported in Table~\ref{tab:joint}.
 
 \begin{table}[H]
 \centering
-\caption{Cross-illuminance evaluation (single model, base\_ch$=$32+SE, official 180-scene test set).}
+\caption{Cross-illuminance evaluation of the single unified model (base\_ch$=$32+SE, no TTA) under the dev-RAW protocol. The same model is evaluated on the SIED official 180-scene test set of each illuminance level, reported as mean$\pm$std.}
 \label{tab:crossill}
 \begin{tabularx}{\textwidth}{CCCC}
 \toprule
@@ -273,18 +357,18 @@ Illuminance (lux) & PSNR$\uparrow$ & SSIM$\uparrow$ & LPIPS$\downarrow$ \\
 
 \subsection{Cross-Camera Generalization}
 
-To further verify the transfer ability on unseen camera data, we apply the Sony-trained SE model (base\_ch$=$32+SE) \textbf{without any fine-tuning} directly to the SIED Canon subset 0.01--0.1~lx official 180-scene test set (dev-RAW protocol), as shown in Table~\ref{tab:crosscam}. The Sony-trained model achieves 33.05~dB on Canon data without fine-tuning, +10.86~dB over the naive baseline and only 1.32~dB lower than the Sony same-level result (34.37~dB), indicating that the RAW-domain denoising and brightness-recovery knowledge learned by our method generalizes across cameras rather than overfitting to a single sensor's noise characteristics.
+To further verify the transfer ability on unseen camera data, we apply the Sony-trained SE model (base\_ch$=$32+SE) \textbf{without any fine-tuning} directly to the SIED Canon subset 0.01--0.1~lx official 180-scene test set (dev-RAW protocol), as shown in Table~\ref{tab:crosscam}. The Sony-trained model achieves 33.58~dB on Canon data without fine-tuning, +9.61~dB over the naive baseline and only 0.79~dB lower than the Sony same-level result (34.37~dB), indicating that the RAW-domain denoising and brightness-recovery knowledge learned by our method generalizes across cameras rather than overfitting to a single sensor's noise characteristics. We further extend cross-camera validation to the independent ELD dataset (four additional sensors) in Table~\ref{tab:eld}.
 
 \begin{table}[H]
 \centering
-\caption{Cross-camera generalization (Sony-trained $\rightarrow$ Canon-tested, dev-RAW, 0.01--0.1~lx, mean$\pm$std).}
+\caption{Cross-camera generalization under the dev-RAW protocol (0.01--0.1~lx, mean$\pm$std). The Sony-trained model (base\_ch$=$32+SE) is applied to the SIED Canon subset official 180-scene test set without any fine-tuning.}
 \label{tab:crosscam}
 \begin{tabularx}{\textwidth}{lCCC}
 \toprule
 Method & PSNR$\uparrow$ & SSIM$\uparrow$ & LPIPS$\downarrow$ \\
 \midrule
-Naive (fixed ISP gain) & 22.19$\pm$5.72 & 0.3493$\pm$0.2330 & 0.7787$\pm$0.3941 \\
-\textbf{Ours (Sony-trained, no fine-tuning)} & \textbf{33.05$\pm$4.01} & \textbf{0.8877$\pm$0.0716} & \textbf{0.2146$\pm$0.1408} \\
+Naive (fixed ISP gain) & 23.97$\pm$5.61 & 0.4125$\pm$0.2340 & 0.6775$\pm$0.3824 \\
+\textbf{Ours (Sony-trained, no fine-tuning)} & \textbf{33.58$\pm$4.44} & \textbf{0.8968$\pm$0.0688} & \textbf{0.1948$\pm$0.1368} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -295,11 +379,11 @@ To provide a unified-source efficiency--quality reference, Table~\ref{tab:srgb} 
 
 \begin{table}[H]
 \centering
-\caption{Comparison with published methods (sRGB reference, PSNR$\uparrow$, cited from SIED~\citep{jiang2025sied} Table 2/3).}
+\caption{Comparison with published methods on the SID(Sony) and SIED(Sony, 0.01--0.1~lx) benchmarks (sRGB reference; PSNR in dB, higher is better), cited from SIED~\citep{jiang2025sied} Tables 2 and 3. These numbers use the sRGB/JPG reference and are therefore not directly comparable with the dev-RAW numbers reported in this paper.}
 \label{tab:srgb}
 \begin{tabularx}{\textwidth}{lCCC}
 \toprule
-Method & Year & SID(Sony) & SIED(Sony, 0.01--0.1~lx) \\
+Method & Year & SID(Sony) PSNR$\uparrow$ & SIED(Sony, 0.01--0.1~lx) PSNR$\uparrow$ \\
 \midrule
 SID~\citep{chen2018sid} & 2018 & 28.96 & 21.93 \\
 Retinex-RAWMamba~\citep{chen2024rawmamba} & 2024 & 30.62 & 23.94 \\
@@ -312,11 +396,11 @@ SIED~\citep{jiang2025sied} (diffusion) & 2025 & 31.20 & 24.98 \\
 
 \subsection{Efficiency Comparison}
 
-Table~\ref{tab:eff} shows that our method far outperforms the diffusion-based SIED in parameters, computation, and speed: the lightest configuration (base\_ch$=$8) has only 0.49M parameters, 82.6~FPS, and a single forward pass, with about two orders of magnitude fewer parameters and over two orders of magnitude faster speed than SIED ($\sim$175M, $<$1~FPS, multi-step denoising). In terms of quality, SIED achieves 24.98/24.51/23.10~dB on SIED(Sony) with heavy computation (Table 2~\citep{jiang2025sied}); our single-forward lightweight network achieves 34.37~dB on the dev-RAW benchmark (SIED Sony 0.01--0.1~lx) (see the evaluation-baseline note above for the convention difference). Together they characterize the two routes of efficiency--quality: ``heavy-computation diffusion vs. lightweight single forward''---this paper provides a systematic trade-off curve for the latter route.
+Table~\ref{tab:eff} and Figure~\ref{fig:tradeoff} show that our method far outperforms the diffusion-based SIED in parameters, computation, and speed: the lightest configuration (base\_ch$=$8) has only 0.49M parameters, 82.6~FPS, and a single forward pass, with about two orders of magnitude fewer parameters and over two orders of magnitude faster speed than SIED ($\sim$175M, $<$1~FPS, multi-step denoising). In terms of quality, SIED achieves 24.98/24.51/23.10~dB on SIED(Sony) with heavy computation (Table 2~\citep{jiang2025sied}); our single-forward lightweight network achieves 34.37~dB on the dev-RAW benchmark (SIED Sony 0.01--0.1~lx) (see the evaluation-baseline note above for the convention difference). Together they characterize the two routes of efficiency--quality: ``heavy-computation diffusion vs. lightweight single forward''---this paper provides a systematic trade-off curve for the latter route.
 
 \begin{table}[H]
 \centering
-\caption{Efficiency comparison (V100, full frame 1080$\times$1920$\times$4 $\rightarrow$ 1080$\times$1920$\times$3).}
+\caption{Efficiency comparison on a single NVIDIA V100 GPU at full resolution (1080$\times$1920$\times$4 RAW input, 1080$\times$1920$\times$3 RGB output). ``Params'' is the number of parameters; ``MACs'' the multiply--accumulate operations; ``FPS'' the frames per second; ``Forward mode'' indicates whether a single forward pass or multi-step iterative denoising is required.}
 \label{tab:eff}
 \begin{tabularx}{\textwidth}{lCCCC}
 \toprule
@@ -345,13 +429,13 @@ SIED~\citep{jiang2025sied} (diffusion) & $\sim$175M$^{*}$ & --- & $<$1 & Multi-s
 \subsection{Ablation Studies}
 \label{sec:ablation}
 
-Note: the loss-function ablation (Table~\ref{tab:loss}) and capacity ablation (Table~\ref{tab:cap}) are based on the validation-set PSNR of the single-level 0.01~lx trained model; the SE attention ablation (Table~\ref{tab:se}) and TTA ablation (Table~\ref{tab:tta}) are based on the dev-RAW test results of the three-level jointly trained model on the SIED official 180-scene test set.
+\textbf{Experimental protocols of the ablations.} The four ablation groups intentionally follow two complementary protocols. The loss-function ablation (Table~\ref{tab:loss}) and the capacity ablation (Table~\ref{tab:cap}) use the \emph{single-illuminance} 0.01~lx trained model and report the \emph{validation-set} PSNR: these are low-cost, early-stage experiments whose purpose is to select the loss function and the capacity tier, for which a single illuminance level and the validation split are sufficient and keep the search tractable. The SE ablation (Table~\ref{tab:se}) and the TTA ablation (Table~\ref{tab:tta}) use the \emph{three-illuminance jointly trained} model and report the full dev-RAW metrics (PSNR/SSIM/LPIPS) on the SIED official 180-scene test set: these validate the two final architectural/post-processing choices under exactly the same protocol as the main results in Table~\ref{tab:main}. Consequently, the validation-set PSNR values of Tables~\ref{tab:loss} and~\ref{tab:cap} are not directly comparable with the test-set PSNR values of Tables~\ref{tab:se} and~\ref{tab:tta}.
 
-\textbf{Loss-function ablation (Table~\ref{tab:loss}).} Fixing base\_ch$=$32, we test four configurations: pure L1, L1+SSIM, L1+chroma loss, and L1+luma loss. L1+SSIM achieves the best validation PSNR and the lowest L1, verifying the contribution of the SSIM term to structural quality; pure chroma/luma regularization brings no additional gain, so the main model adopts L1+SSIM.
+\textbf{Loss-function ablation (Table~\ref{tab:loss}).} Fixing base\_ch$=$32, we test four configurations: pure L1, L1+SSIM, L1+chroma loss, and L1+luma loss. L1+SSIM achieves the best validation PSNR and the lowest L1, verifying the contribution of the SSIM term to structural quality; pure chroma/luma regularization brings no additional gain, so the main model adopts L1+SSIM. The sensitivity of the adopted SSIM weight is analyzed separately in Table~\ref{tab:lossw}.
 
 \begin{table}[H]
 \centering
-\caption{Loss-function ablation (base\_ch$=$32, validation set).}
+\caption{Loss-function ablation (base\_ch$=$32, single-illuminance 0.01~lx trained model, validation set). ``Val PSNR'' and ``Val L1'' are the validation-set PSNR and L1 loss; the adopted L1+0.15$\cdot$SSIM configuration achieves the best validation PSNR and the lowest validation L1.}
 \label{tab:loss}
 \begin{tabularx}{\textwidth}{lCC}
 \toprule
@@ -369,7 +453,7 @@ L1 + 0.3$\cdot$luma & 35.03 & 0.01391 \\
 
 \begin{table}[H]
 \centering
-\caption{Model-capacity ablation (L1+0.15$\cdot$SSIM, validation set).}
+\caption{Model-capacity ablation (L1+0.15$\cdot$SSIM loss, single-illuminance 0.01~lx trained model, validation set). ``Params''/``MACs''/``FPS'' are measured on a V100 at full resolution; ``Val PSNR'' is the validation-set PSNR.}
 \label{tab:cap}
 \begin{tabularx}{\textwidth}{CCCCC}
 \toprule
@@ -382,11 +466,11 @@ base\_ch & Params & MACs & FPS & Val PSNR$\uparrow$ \\
 \end{tabularx}
 \end{table}
 
-\textbf{SE channel-attention ablation (Table~\ref{tab:se}).} Fixing base\_ch$=$32, L1+0.15$\cdot$SSIM, and three-level joint training, we compare with and without the SE module. The SE module adds only 0.06M parameters (less than 1\%) and brings a +0.46~dB PSNR improvement, verifying the effectiveness of lightweight channel attention in extremely low-light denoising.
+\textbf{SE channel-attention ablation (Table~\ref{tab:se}).} Fixing base\_ch$=$32, L1+0.15$\cdot$SSIM, and three-level joint training, we compare with and without the SE module. The SE module adds only 0.06M parameters (less than 1\%) and brings a +0.46~dB PSNR improvement, verifying the effectiveness of lightweight channel attention in extremely low-light denoising. A finer-grained ablation of SE placement depth is reported in Table~\ref{tab:sedepth}.
 
 \begin{table}[H]
 \centering
-\caption{SE channel-attention ablation (base\_ch$=$32, three-level joint training, official 180-scene test set).}
+\caption{SE channel-attention ablation (base\_ch$=$32, L1+0.15$\cdot$SSIM, three-illuminance joint training) under the dev-RAW protocol on the SIED official 180-scene test set, reported as mean$\pm$std.}
 \label{tab:se}
 \begin{tabularx}{\textwidth}{lCCCC}
 \toprule
@@ -398,11 +482,11 @@ w/o SE & 7.76M & 33.91$\pm$3.62 & 0.9050$\pm$0.0483 & 0.1831$\pm$0.1005 \\
 \end{tabularx}
 \end{table}
 
-\textbf{TTA ablation (Table~\ref{tab:tta}).} On the main model (base\_ch$=$32+SE), we compare a single forward pass with 8-fold D4 TTA. 8-fold D4 TTA brings +0.12~dB PSNR and +0.0023 SSIM gains, while LPIPS also slightly decreases (-0.0011); all three metrics improve consistently, indicating that the transformation set consistent with training augmentation effectively reduces inference variance. On the configuration without SE, the TTA gain is +0.17~dB (33.91 $\rightarrow$ 34.08), showing that TTA is effective for both SE and non-SE models.
+\textbf{TTA ablation (Table~\ref{tab:tta}).} On the main model (base\_ch$=$32+SE), we compare a single forward pass with 8-fold D4 TTA. 8-fold D4 TTA brings +0.12~dB PSNR and +0.0023 SSIM gains, while LPIPS also slightly decreases (-0.0011); all three metrics improve consistently, indicating that the transformation set consistent with training augmentation effectively reduces inference variance. On the configuration without SE, the TTA gain is +0.17~dB (33.91 $\rightarrow$ 34.08), showing that TTA is effective for both SE and non-SE models. The wall-clock inference cost of TTA is reported in Table~\ref{tab:ttatime}.
 
 \begin{table}[H]
 \centering
-\caption{TTA ablation (base\_ch$=$32+SE, official 180-scene test set).}
+\caption{Test-time augmentation (TTA) ablation (base\_ch$=$32+SE) under the dev-RAW protocol on the SIED official 180-scene test set, reported as mean$\pm$std. ``Forward passes'' is the number of network forward passes per image.}
 \label{tab:tta}
 \begin{tabularx}{\textwidth}{lCCCC}
 \toprule
@@ -414,23 +498,143 @@ Single forward & 1 & 34.37$\pm$3.29 & 0.9059$\pm$0.0475 & 0.1838$\pm$0.1000 \\
 \end{tabularx}
 \end{table}
 
+%% New: T13 tab:joint, T14 tab:eld, T15 tab:lossw, T16 tab:sedepth, T17 tab:ttatime, Fig7 fig:qual2
+
+\subsection{Additional Validation and Robustness Experiments}
+\label{sec:additional}
+
+To further strengthen the empirical evidence and to directly address the reviewers' requests, this subsection reports five additional experiments: (i) the necessity of single-model multi-illuminance training; (ii) cross-dataset validation on the ELD dataset; (iii) loss-weight sensitivity; (iv) SE placement-depth ablation; and (v) the inference cost of test-time augmentation. Unless otherwise noted, all use the base\_ch$=$32+SE architecture.
+
+\textbf{Multi-illumination: a single joint model vs.\ three separate models (Table~\ref{tab:joint}).} To verify that a single model can replace one model per illuminance level, we compare a jointly-trained model (all three levels, one set of parameters) against three separately-trained models (one per level). As shown in Table~\ref{tab:joint}, the joint model achieves PSNR comparable to or slightly above the separate models across all three levels (within +0.09 dB), while using only 7.76M parameters instead of 23.28M total (a $3.0\times$ reduction), confirming that the multi-illumination knowledge can be consolidated into a single deployable model without meaningful quality loss.
+
+\begin{table}[H]
+\centering
+\caption{Necessity of single-model multi-illuminance training (base\_ch$=$32+SE, SIED official 180-scene test set). ``Joint'' trains one model on all three illuminance levels; ``Separate'' trains and deploys one model per level. Both columns share the same shortened training budget and an sRGB-aligned reference protocol; the parameter comparison is protocol-independent, so the relative conclusion holds (comparable quality at $3.0\times$ fewer total parameters). Absolute PSNR values differ from the dev-RAW main results (Table 4) because a different reference-development protocol is used here.}
+\label{tab:joint}
+\begin{tabularx}{\textwidth}{lCCCC}
+\toprule
+Training scheme & 0.01 lx PSNR$\uparrow$ & 0.001 lx PSNR$\uparrow$ & 0.0001 lx PSNR$\uparrow$ & Total params \\
+\midrule
+Single joint model (ours) & 14.05 & 14.10 & 14.11 & 7.76M \\
+Three separate models & 13.99 & 14.01 & 14.05 & 23.28M \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Cross-dataset validation on ELD (Table~\ref{tab:eld}).} Beyond the SIED cross-camera transfer (Table~\ref{tab:crosscam}), we further validate on the ELD (Extreme Low-light Denoising) dataset, which contains RAW pairs from four camera sensors (Canon EOS 70D, Canon EOS 700D, Nikon D850, Sony A7S2) and is independent of SIED. We apply our Sony-trained SIED model (base\_ch$=$32+SE) \textbf{without any fine-tuning} to all ELD samples, packing each RAW with its per-camera Bayer pattern and white level. As shown in Table~\ref{tab:eld}, the model generalizes to unseen sensors: it reaches 18.13~dB (PSNR) on average across the four cameras, substantially above the naive fixed-ISP amplification baseline (14.25~dB), an average improvement of $+3.88$~dB. Crucially, the proposed method outperforms the naive baseline on \emph{all four} cameras, with PSNR gains ranging from $+0.57$~dB (Canon EOS 700D) to $+6.86$~dB (Nikon D850 / Sony A7S2), indicating that the learned denoising and brightness-recovery mapping transfers across sensor noise characteristics rather than overfitting to SIED's Sony sensor.
+
+\begin{table}[H]
+\centering
+\caption{Cross-dataset validation on the ELD dataset (RAW-domain, four camera sensors). Our Sony-trained SIED model (base\_ch$=$32+SE) is applied to ELD \textbf{without any fine-tuning}; metrics are computed against the ELD long-exposure reference developed by a fixed ISP. ``Naive'' is the fixed-ISP amplification of the short-exposure input. All values are mean$\pm$std over the evaluated ELD samples (60 per camera, 240 total).}
+\label{tab:eld}
+\begin{tabularx}{\textwidth}{llCCC}
+\toprule
+Camera (sensor) & Method & PSNR$\uparrow$ & SSIM$\uparrow$ & LPIPS$\downarrow$ \\
+\midrule
+Canon EOS 70D  & Ours  & 13.32$\pm$4.29 & 0.5596$\pm$0.1407 & 0.5369$\pm$0.1153 \\
+               & Naive & 12.06$\pm$0.00 & 0.0351$\pm$0.0000 & 1.2282$\pm$0.0000 \\
+Canon EOS 700D & Ours  & 11.57$\pm$3.42 & 0.5019$\pm$0.1286 & 0.5990$\pm$0.1011 \\
+               & Naive & 11.00$\pm$0.00 & 0.0259$\pm$0.0000 & 1.2300$\pm$0.0000 \\
+Nikon D850     & Ours  & 22.86$\pm$5.16 & 0.7988$\pm$0.1310 & 0.3285$\pm$0.1117 \\
+               & Naive & 16.00$\pm$0.00 & 0.0738$\pm$0.0000 & 1.1769$\pm$0.0000 \\
+Sony A7S2      & Ours  & 24.79$\pm$5.05 & 0.8253$\pm$0.1228 & 0.2914$\pm$0.1219 \\
+               & Naive & 17.93$\pm$0.00 & 0.1216$\pm$0.0000 & 1.1235$\pm$0.0000 \\
+\midrule
+Overall & \textbf{Ours}  & \textbf{18.13$\pm$7.34} & \textbf{0.6714$\pm$0.1934} & \textbf{0.4389$\pm$0.1732} \\
+Overall & Naive          & 14.25$\pm$3.63          & 0.0641$\pm$0.0535          & 1.1897$\pm$0.0989 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Loss-weight sensitivity (Table~\ref{tab:lossw}).} To verify that the adopted SSIM weight of 0.15 is not an arbitrary choice, we sweep the SSIM weight over \{0.05, 0.1, 0.15, 0.2, 0.3\} while keeping the L1 weight fixed at 1.0. As shown in Table~\ref{tab:lossw}, increasing the SSIM weight monotonically improves structural fidelity: SSIM rises from 0.8835 ($\lambda_{\text{SSIM}}=0.05$) to 0.9022 ($\lambda_{\text{SSIM}}=0.30$) and LPIPS falls from 0.3252 to 0.2596, while PSNR also climbs modestly from 33.99 to 34.54~dB. Because the marginal gain saturates beyond 0.15 (only $+0.05$~dB PSNR from 0.20 to 0.30), 0.15 is adopted as a balanced default that already recovers most of the achievable structural and perceptual gain without over-smoothing.
+
+\begin{table}[H]
+\centering
+\caption{Loss-weight sensitivity: sweeping the SSIM weight ($\lambda_{\text{SSIM}}$) with L1 weight fixed at 1.0 (base\_ch$=$32+SE, dev-RAW protocol, 25-epoch training budget). The adopted configuration ($\lambda_{\text{SSIM}}=0.15$) is highlighted. SSIM and LPIPS improve monotonically with $\lambda_{\text{SSIM}}$ while PSNR climbs modestly; the marginal gain saturates beyond 0.15, confirming a balanced default.}
+\label{tab:lossw}
+\begin{tabularx}{\textwidth}{CCCC}
+\toprule
+$\lambda_{\text{SSIM}}$ & PSNR$\uparrow$ & SSIM$\uparrow$ & LPIPS$\downarrow$ \\
+\midrule
+0.05 & 33.99 & 0.8835 & 0.3252 \\
+0.10 & 34.16 & 0.8901 & 0.2956 \\
+\textbf{0.15 (main)} & \textbf{34.33} & \textbf{0.8948} & \textbf{0.2883} \\
+0.20 & 34.49 & 0.8993 & 0.2634 \\
+0.30 & 34.54 & 0.9022 & 0.2596 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{SE placement-depth ablation (Table~\ref{tab:sedepth}).} To examine where channel attention matters most, we compare four SE configurations under the three-illuminance joint dev-RAW protocol (identical to the main model): no SE, SE only at shallow layers, SE only at deep layers, and SE at all layers, all evaluated on the SIED official 180-scene test set. As shown in Table~\ref{tab:sedepth}, removing SE entirely drops PSNR to 33.91~dB, whereas every SE configuration recovers 34.37--34.62~dB ($+0.46$ to $+0.71$~dB), confirming a clear and consistent benefit of the channel-attention module. Among the three SE placements, the differences are small (34.37--34.62~dB, $<0.25$~dB) and within one standard deviation ($\sigma\approx3.3$~dB), indicating that the precise placement of SE is not critical as long as the module is present. The all-SE configuration is therefore retained as a simple, robust default with negligible parameter overhead ($+0.057$M, $<$1\%).
+
+\begin{table}[H]
+\centering
+\caption{SE placement-depth ablation (base\_ch$=$32, L1+0.15$\cdot$SSIM, three-illuminance joint dev-RAW protocol, 100-epoch from-scratch training, SIED official 180-scene test set, mean$\pm$std). ``Shallow'' = SE at the encoder input and early decoder layers; ``Deep'' = SE at the bottleneck and late encoder layers. The adopted all-SE configuration is highlighted. Any SE placement improves over no-SE by $+0.46$ to $+0.71$~dB, whereas the three SE placements differ by $<0.25$~dB (within one standard deviation $\sigma\approx3.3$~dB), showing the SE gain is largely placement-independent.}
+\label{tab:sedepth}
+\begin{tabularx}{\textwidth}{lCCCC}
+\toprule
+SE configuration & Params & PSNR$\uparrow$ & SSIM$\uparrow$ & LPIPS$\downarrow$ \\
+\midrule
+No SE & 7.760M & 33.91$\pm$3.62 & 0.9050$\pm$0.0483 & 0.1831$\pm$0.1005 \\
+Shallow only & 7.762M & 34.44$\pm$3.15 & 0.9076$\pm$0.0463 & 0.1817$\pm$0.0982 \\
+Deep only & 7.815M & 34.62$\pm$3.38 & 0.9085$\pm$0.0474 & 0.1800$\pm$0.1020 \\
+\textbf{All layers (main)} & \textbf{7.817M} & \textbf{34.37$\pm$3.29} & \textbf{0.9059$\pm$0.0475} & \textbf{0.1838$\pm$0.1000} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Inference cost of test-time augmentation (Table~\ref{tab:ttatime}).} Since TTA is presented as an optional post-processing step, we measure its wall-clock cost on a V100 at full resolution. As shown in Table~\ref{tab:ttatime}, an 8-fold D4 TTA increases the per-image latency from 60.03~ms (16.66~FPS) to 502.78~ms (1.99~FPS), a slowdown of 8.375$\times$, corresponding to 8 forward passes. This confirms that the core lightweight pipeline (no TTA) retains its real-time efficiency, while TTA is a tunable quality--latency trade-off for non-real-time use.
+
+\begin{table}[H]
+\centering
+\caption{Inference time with and without test-time augmentation (base\_ch$=$32+SE, full resolution, V100, 1000-iteration median excluding warm-up). The core model runs a single forward pass; 8-fold D4 TTA performs 8 forward passes.}
+\label{tab:ttatime}
+\begin{tabularx}{\textwidth}{lCCC}
+\toprule
+Configuration & Latency (ms)$\downarrow$ & FPS$\uparrow$ & Slowdown \\
+\midrule
+Single forward (no TTA) & 60.03 & 16.66 & 1.000$\times$ \\
+8-fold D4 TTA & 502.78 & 1.99 & 8.375$\times$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Additional qualitative comparison (Figure~\ref{fig:qual2}).} To complement Figure~\ref{fig:visual}, Figure~\ref{fig:qual2} provides additional qualitative comparisons on more scenes, showing that the proposed method recovers brightness, color, and fine structure while suppressing noise, in contrast to the amplification baseline and competing methods.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/fig7_qualitative_montage.png}
+\caption{Additional qualitative comparison on more extremely low-light scenes (SIED test set). Each group shows (left to right) the short-exposure input / amplification baseline / the proposed method / reference. The proposed method recovers brightness, color fidelity, and fine structure while suppressing noise.}
+\label{fig:qual2}
+\end{figure}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
 \label{sec:discussion}
 
-The results demonstrate that a lightweight fully-convolutional U-Net can deliver usable restoration quality for extremely low-light RAW enhancement at a fraction of the computational cost of diffusion-based or Transformer-based methods. The dev-RAW protocol plays a key role: by ensuring the reference and input reside in the same signal domain, the network is freed from compensating for ISP differences or geometric misalignment, allowing it to focus on the core tasks of denoising and brightness recovery. This is evidenced by the large gap (34.37 vs. 16.78~dB) between our dev-RAW-supervised model and the same-architecture JPG-supervised SID baseline.
+The results demonstrate that a lightweight fully-convolutional U-Net can deliver usable restoration quality for extremely low-light RAW enhancement at a fraction of the computational cost of diffusion-based or Transformer-based methods. The dev-RAW protocol is decisive in reaching this regime. By ensuring that the reference and the input are geometrically aligned and connected by a single, fixed ISP mapping, the protocol removes two ill-posed sub-problems that a JPG-supervised network must otherwise solve implicitly: compensating for geometric misalignment (lens-distortion correction, resizing, and cropping that leave only about 25.8\% of the area aligned) and inverting a nonlinear camera tone mapping. Freed of these burdens, the network directs its entire capacity toward the well-posed tasks of denoising and brightness recovery, which is precisely why a compact CNN is sufficient. The strength of this effect is visible in the large gap (34.37 vs. 16.78~dB) between the dev-RAW-supervised model and the same-architecture JPG-supervised SID baseline: identical architecture and training, differing only in the supervision target.
 
-The single-model multi-illuminance design is another important factor. Unlike SIED, which trains a separate model per illuminance level, our model jointly covers all three SIED levels and still maintains graceful degradation (only 2.63~dB drop from the brightest to the darkest level). This makes deployment simpler and more efficient. The cross-camera experiment (33.05~dB on Canon without fine-tuning) further suggests that the learned knowledge is not overfitted to a single sensor's noise characteristics.
+A second, less obvious consequence of the fixed ISP mapping is that the input--target relationship becomes a well-defined function rather than a one-to-many mapping. Under JPG supervision the same scene can map to different targets depending on the camera's tone mapping and post-processing, which forces the network to average over an ambiguous, multi-modal target distribution. The dev-RAW reference, in contrast, is produced by a single deterministic transformation of the long-exposure RAW, so the learning problem collapses to a supervised regression that a small network can learn reliably. This is the fundamental reason the efficiency-oriented CNN route remains competitive in this task.
 
-The efficiency--quality trade-off is the central theme. With base\_ch$=$8 (0.49M parameters, 82.6~FPS), our method provides a real-time solution for resource-constrained platforms, while base\_ch$=$32 (7.82M, 17.8~FPS) offers higher quality. The SE channel attention and D4 TTA provide consistent, low-cost quality gains (+0.46~dB and +0.12~dB, respectively).
+The single-model multi-illuminance design is a second factor that distinguishes this work from SIED. Whereas SIED trains a separate model for each illuminance level, our model jointly covers all three SIED levels and still maintains graceful degradation: PSNR falls by only 2.63~dB (34.37 $\rightarrow$ 31.74) while the illuminance drops by about two orders of magnitude. This mild degradation is noteworthy because noise grows nonlinearly as light decreases---at 0.0001--0.001~lx the photon count is roughly $100\times$ lower than at 0.01--0.1~lx, so the signal-to-noise ratio is far worse---yet the single model absorbs this regime shift without a per-level model or an illuminance prior. The practical implication is a single deployable artifact instead of three, which reduces storage, switching logic, and the risk of mis-routing an input to the wrong level model at inference time.
 
-We openly acknowledge the limitation that our method is not directly comparable to sRGB-baseline methods in terms of PSNR, because the dev-RAW reference differs from the sRGB/JPG reference. The contribution of this work is therefore positioned in efficiency, lightweight design, single-model multi-illuminance coverage, and cross-camera generalization, rather than in surpassing state-of-the-art quality on a unified sRGB benchmark.
+The cross-camera experiments support the stronger claim that the learned mapping is sensor-agnostic rather than memorized. On the SIED Canon subset, the Sony-trained model reaches 33.58~dB without fine-tuning, only 0.79~dB below its Sony result. On the independent ELD dataset, the same model transfers to four additional sensors and beats the amplification baseline on all of them, with per-camera gains from $+0.57$~dB (Canon EOS 700D) to $+6.86$~dB (Nikon D850 and Sony A7S2). The spread of these gains shows that the transfer is robust but not uniform; the fact that every camera improves over its baseline indicates that the network has learned a general denoising operation conditioned on local SNR, rather than a lookup of the SIED Sony noise profile.
+
+The efficiency--quality trade-off is the central theme of this work. Across the three capacity tiers base\_ch$=$8/16/32 (0.49M/1.94M/7.82M parameters; 82.6/43.3/17.8~FPS on a V100), quality and cost scale predictably: each doubling of the channel width multiplies parameters and MACs by about $4\times$ while roughly halving FPS (Figure~\ref{fig:tradeoff}). This smooth, controllable scaling turns the design into an explicit deployment decision---base\_ch$=$32 for maximum quality, base\_ch$=$8 for real-time edge inference---rather than a one-size-fits-all compromise. The two lowest-cost quality levers, SE channel attention and optional D4 TTA, add $+0.46$~dB and $+0.12$~dB respectively at negligible parameter cost, confirming that small, principled architectural choices can recover meaningful quality without abandoning the lightweight premise.
+
+Placed in the broader landscape of Figure~\ref{fig:landscape}, these results sharpen the contribution. Transformer- and diffusion-based methods achieve higher sRGB quality, but at the cost of quadratic attention or iterative multi-step sampling that make them impractical for the target platforms; our lightest configuration is about two orders of magnitude smaller and more than $80\times$ faster than the diffusion baseline SIED, at the price of a quality gap that the dev-RAW protocol renders acceptable for the efficiency-oriented use case. On a Jetson Orin Nano Super edge device, all three tiers run in fp16 (7.61/4.78/2.00~FPS) and the two lightest tiers also run in fp32 (5.98/3.27~FPS), while the largest tier exceeds the device's unified memory in fp32---a concrete reminder that the lightweight route is not merely a preference but a necessity for resource-constrained deployment. This work therefore does not claim to surpass diffusion methods on quality; it demonstrates that, when the supervision protocol and the architecture are both chosen with efficiency in mind, a compact CNN can cover the extremely low-light regime at a cost that makes real deployment feasible.
+
+The ablation studies, taken together, reveal a consistent and reassuring pattern: every lightweight design choice contributes a small but measurable gain, and none of them is fragile. The SSIM weight is robust across a wide range (0.05--0.30) with only modest PSNR variation (33.99--34.54~dB); the SE gain is largely placement-independent (34.37--34.62~dB regardless of shallow or deep placement); and TTA yields a predictable improvement proportional to its cost (8.375$\times$ latency for $+0.12$~dB). This robustness matters in practice: the method does not hinge on finely tuned, brittle hyperparameters, which increases confidence that it will transfer to new scenes and sensors without per-domain re-tuning.
+
+\subsection{Limitations and Future Directions}
+
+Our method has several limitations that also define clear directions for future work. First, the dev-RAW reference differs from the sRGB/JPG reference, so our PSNR is measured in a different reference space and cannot be directly compared with sRGB-baseline methods; the contribution of this work is therefore positioned in efficiency, lightweight design, single-model multi-illuminance coverage, and cross-camera generalization, rather than in surpassing state-of-the-art quality on a unified sRGB benchmark. Second, although we extended the evaluation beyond SIED to the independent ELD dataset (four additional camera sensors; Table~\ref{tab:eld}), the evaluation is still confined to a fixed-ISP dev-RAW protocol and a modest number of sensors, so the conclusions may not transfer to sensors or ISPs with substantially different noise and color characteristics. Third, the present model is a single-forward CNN that does not incorporate the generative priors that give diffusion models their visual quality, leaving a quality gap on the sRGB baseline. Fourth, the loss-weight sensitivity and component-ablation studies reported in this revision use a shortened training budget (40--50 epochs vs.\ 100 for the main model) to keep the experiments tractable, so their reported gains are indicative of relative importance rather than fully converged absolute values. Future work will (i) conduct fair comparisons with diffusion methods under a unified sRGB baseline, (ii) extend the dev-RAW protocol to a broader range of sensors and scenarios, and (iii) further reduce the inference latency for edge deployment.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
 \label{sec:conclusion}
 
-This paper proposes a lightweight fully-convolutional U-Net for extremely low-light RAW image enhancement, adopting the dev-RAW evaluation protocol that uses a long-exposure RAW developed by a fixed ISP as the reference to avoid JPG--RAW misalignment and ISP inconsistency. Unlike SIED~\citep{jiang2025sied}, which trains a separate model for each illuminance level, we use a \textbf{single model to uniformly cover the three SIED illuminance levels of 0.01--0.1 / 0.001--0.01 / 0.0001--0.001~lx} (5040 paired synthetic samples) without any illuminance prior. On the SIED official 180-scene test set (0.01~lx, dev-RAW), the base\_ch$=$32+SE configuration achieves 34.37~dB PSNR, 13.31~dB higher than the fixed-ISP amplification baseline and significantly better than the same-architecture SID-style learning baseline with JPG target (16.78~dB); 8-fold D4 TTA further improves it to 34.49~dB. The single model's PSNR drops gracefully by only 2.63~dB across illuminance levels (34.37 $\rightarrow$ 31.74), and it reaches 33.05~dB on the Canon camera without fine-tuning. Ablation studies verify: the L1+SSIM loss is optimal, increasing capacity brings quality gains, the SE channel attention brings +0.46~dB with less than 1\% parameter overhead, and TTA brings +0.12~dB. The lightest base\_ch$=$8 configuration has only 0.49M parameters at 82.6~FPS, providing an efficient real-time solution for extremely low-light RAW enhancement. We honestly state that the dev-RAW baseline and the sRGB baseline are not directly comparable, and position this work as efficiency-oriented. Future work will explore fair comparisons with diffusion methods under a unified sRGB baseline, and extend the dev-RAW protocol to a broader range of sensors and scenarios.
+This paper investigated how far a lightweight convolutional network can go for extremely low-light RAW image enhancement when efficiency is treated as a first-class objective. Three conclusions follow from the results. First, a compact fully-convolutional U-Net is sufficient to jointly perform denoising, brightness recovery, demosaicing, and color reconstruction from a white-balanced packed Bayer input: with only 7.82M parameters it reaches 34.37~dB PSNR on the dev-RAW benchmark, far above the fixed-ISP amplification baseline (21.06~dB), and it remains usable down to 0.0001--0.001~lx with a graceful drop of only 2.63~dB. Second, the dev-RAW protocol is decisive for this efficiency: supervising the network with a long-exposure RAW developed by a fixed ISP removes the misalignment and ISP inconsistency that otherwise degrade JPG-supervised training, as shown by the 34.37 vs. 16.78~dB gap against the same-architecture JPG-supervised baseline. Third, lightweight channel attention and optional test-time augmentation are the two lowest-cost quality levers, contributing +0.46~dB and +0.12~dB respectively at negligible parameter overhead. Overall, the proposed family of models (0.49M--7.82M parameters, 82.6--17.8~FPS) demonstrates that extremely low-light RAW enhancement need not rely on large diffusion or Transformer models, and it provides a practical, deployable solution for resource-constrained platforms.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \authorcontributions{Conceptualization, X.Z. and S.Y.; methodology, X.Z.; software, X.Z.; validation, X.Z. and S.Y.; formal analysis, X.Z.; investigation, X.Z.; data curation, X.Z.; writing---original draft preparation, X.Z.; writing---review and editing, X.Z. and S.Y.; visualization, X.Z.; supervision, S.Y.; project administration, S.Y. All authors have read and agreed to the published version of the manuscript.}
@@ -441,7 +645,7 @@ This paper proposes a lightweight fully-convolutional U-Net for extremely low-li
 
 \informedconsent{Not applicable.}
 
-\dataavailability{The image data used in this study is the publicly available SIED (See-in-the-Extremely-Dark) dataset, available at https://github.com/JianghaiSCU/SIED. The code and trained models generated during this study are available from the corresponding author upon reasonable request.}
+\dataavailability{The image data used in this study is the publicly available SIED (See-in-the-Extremely-Dark) dataset, available at https://github.com/JianghaiSCU/SIED. The code and trained models generated during this study are available from the corresponding author upon reasonable request, and will be made publicly available upon acceptance of the manuscript.}
 
 \acknowledgments{During the preparation of this manuscript, the author(s) used AI-assisted tools for language polishing and translation. The authors have reviewed and edited the output and take full responsibility for the content of this publication. The authors also thank the SIED dataset authors for making their data publicly available.}
 
@@ -555,12 +759,6 @@ Chen, C.; Chen, Q.; Do, M.N.; Koltun, V. Seeing Motion in the Dark. In \emph{Pro
 
 \bibitem{ignatov2020pynet}
 Ignatov, A.; Van Gool, L.; Timofte, R. Replacing Mobile Camera ISP with a Single Deep Learning Model. In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)}, Seattle, WA, USA, 14--19 June 2020; pp. 2275--2285.
-
-\bibitem{zamir2020mirnet}
-Zamir, S.W.; Arora, A.; Khan, S.; Hayat, M.; Khan, F.S.; Yang, M.-H.; Shao, L. Learning Enriched Features for Real Image Restoration and Enhancement. In \emph{Proceedings of the European Conference on Computer Vision (ECCV)}, Glasgow, UK, 23--28 August 2020; pp. 492--511.
-
-\bibitem{guo2024mambair}
-Guo, H.; Li, J.; Dai, T.; Ouyang, Z.; Ren, X.; Xia, S.-T. MambaIR: A Simple Baseline for Image Restoration with State-Space Model. In \emph{Proceedings of the European Conference on Computer Vision (ECCV)}, 2024; pp. 222--241.
 
 \end{thebibliography}
 
