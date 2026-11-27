@@ -199,10 +199,10 @@ Output & outc & 32$\rightarrow$3 & H$\times$W \\
 \subsection{Loss Function}
 
 The total loss is a weighted sum of a masked L1 (pixel-level fidelity) term and a structural-similarity (SSIM) term:
-\begin{equation}
-\mathcal{L} = \mathcal{L}_1 + \lambda_{ssim}\,\mathcal{L}_{ssim}, \qquad
-\mathcal{L}_{ssim} = 1 - \mathrm{SSIM}(\hat{I}, I_{ref}),
-\end{equation}
+\begin{align}
+\mathcal{L} &= \mathcal{L}_1 + \lambda_{ssim}\,\mathcal{L}_{ssim}, \label{eq:totalloss} \\
+\mathcal{L}_{ssim} &= 1 - \mathrm{SSIM}(\hat{I}, I_{ref}), \label{eq:ssimterm}
+\end{align}
 where the masked L1 loss is
 \begin{equation}
 \mathcal{L}_1 = \frac{1}{\|M\|_1}\left\| M \odot (\hat{I} - I_{ref}) \right\|_1.
@@ -269,11 +269,10 @@ Mixed precision & Not used (FP32) \\
 The evaluation metrics are PSNR$\uparrow$ / SSIM$\uparrow$ / LPIPS(alex)$\downarrow$, with input range [0,1] and LPIPS internally shifted to [-1,1], aligned with the metric convention of SIED~\citep{jiang2025sied}. Their definitions are given below.
 
 \textbf{PSNR.} The peak signal-to-noise ratio quantifies pixel-level fidelity between a reconstructed image $I$ and its reference $I_{ref}$ (both in $[0,1]$):
-\begin{equation}
-\mathrm{PSNR}(I, I_{ref}) = 10\,\log_{10}\!\left(\frac{1}{\mathrm{MSE}(I, I_{ref})}\right), \qquad
-\mathrm{MSE}(I, I_{ref}) = \frac{1}{N}\sum_{i=1}^{N}\left(I_i - I_{ref,i}\right)^{2},
-\label{eq:psnr}
-\end{equation}
+\begin{align}
+\mathrm{PSNR}(I, I_{ref}) &= 10\,\log_{10}\!\left(\frac{1}{\mathrm{MSE}(I, I_{ref})}\right), \label{eq:psnr} \\
+\mathrm{MSE}(I, I_{ref}) &= \frac{1}{N}\sum_{i=1}^{N}\left(I_i - I_{ref,i}\right)^{2}, \label{eq:mse}
+\end{align}
 where $N$ is the number of pixels over which the mean is computed (the valid-region mask is applied) and the peak value is $1$; a higher PSNR (in dB) indicates better fidelity.
 
 \textbf{SSIM.} The structural similarity index measures luminance, contrast, and structure similarity between local windows of $I$ and $I_{ref}$:
@@ -503,13 +502,13 @@ Single forward & 1 & 34.37$\pm$3.29 & 0.9059$\pm$0.0475 & 0.1838$\pm$0.1000 \\
 \subsection{Additional Validation and Robustness Experiments}
 \label{sec:additional}
 
-To further strengthen the empirical evidence and to directly address the reviewers' requests, this subsection reports five additional experiments: (i) the necessity of single-model multi-illuminance training; (ii) cross-dataset validation on the ELD dataset; (iii) loss-weight sensitivity; (iv) SE placement-depth ablation; and (v) the inference cost of test-time augmentation. Unless otherwise noted, all use the base\_ch$=$32+SE architecture.
+To further strengthen the empirical evidence and to directly address the reviewers' requests, this subsection reports five additional experiments: (i) the necessity of single-model multi-illuminance training; (ii) cross-dataset validation on the ELD dataset; (iii) loss-weight sensitivity; (iv) SE placement-depth ablation; and (v) the inference cost of test-time augmentation. All experiments use the base\_ch$=$32+SE architecture except the multi-illuminance comparison (Table~\ref{tab:joint}), which uses base\_ch$=$32 without SE.
 
 \textbf{Multi-illumination: a single joint model vs.\ three separate models (Table~\ref{tab:joint}).} To verify that a single model can replace one model per illuminance level, we compare a jointly-trained model (all three levels, one set of parameters) against three separately-trained models (one per level). As shown in Table~\ref{tab:joint}, the joint model achieves PSNR comparable to or slightly above the separate models across all three levels (within +0.09 dB), while using only 7.76M parameters instead of 23.28M total (a $3.0\times$ reduction), confirming that the multi-illumination knowledge can be consolidated into a single deployable model without meaningful quality loss. Because training three independent full-budget models is computationally expensive, this comparison adopts a shortened 50-epoch budget under an sRGB-aligned reference protocol, so the absolute PSNR here is lower than the dev-RAW main results; the parameter counts are protocol-independent, and the decisive advantage is the $3.0\times$ parameter saving.
 
 \begin{table}[H]
 \centering
-\caption{Necessity of single-model multi-illuminance training (base\_ch$=$32+SE, SIED official 180-scene test set). ``Joint'' trains one model on all three illuminance levels; ``Separate'' trains and deploys one model per level. Both columns share the same 50-epoch shortened training budget and an sRGB-aligned reference protocol; the parameter comparison is protocol-independent, so the relative conclusion holds (comparable quality at $3.0\times$ fewer total parameters). Absolute PSNR values differ from the dev-RAW main results (Table 4) because a different reference-development protocol is used here.}
+\caption{Necessity of single-model multi-illuminance training (base\_ch$=$32 without SE, SIED official 180-scene test set). ``Joint'' trains one model on all three illuminance levels; ``Separate'' trains and deploys one model per level. Both columns share the same 50-epoch shortened training budget and an sRGB-aligned reference protocol; the parameter comparison is protocol-independent, so the relative conclusion holds (comparable quality at $3.0\times$ fewer total parameters). Absolute PSNR values differ from the dev-RAW main results (Table 4) because a different reference-development protocol is used here.}
 \label{tab:joint}
 \begin{tabularx}{\textwidth}{lCCCC}
 \toprule
@@ -612,17 +611,25 @@ Single forward (no TTA) & 60.03 & 16.66 & 1.000$\times$ \\
 \section{Discussion}
 \label{sec:discussion}
 
+\subsection{Why the dev-RAW Protocol Enables a Compact CNN}
+
 The results demonstrate that a lightweight fully-convolutional U-Net can deliver usable restoration quality for extremely low-light RAW enhancement at a fraction of the computational cost of diffusion-based or Transformer-based methods. The dev-RAW protocol is decisive in reaching this regime. By ensuring that the reference and the input are geometrically aligned and connected by a single, fixed ISP mapping, the protocol removes two ill-posed sub-problems that a JPG-supervised network must otherwise solve implicitly: compensating for geometric misalignment (lens-distortion correction, resizing, and cropping that leave only about 25.8\% of the area aligned) and inverting a nonlinear camera tone mapping. Freed of these burdens, the network directs its entire capacity toward the well-posed tasks of denoising and brightness recovery, which is precisely why a compact CNN is sufficient. The strength of this effect is visible in the large gap (34.37 vs. 16.78~dB) between the dev-RAW-supervised model and the same-architecture JPG-supervised SID baseline: identical architecture and training, differing only in the supervision target.
 
 A second, less obvious consequence of the fixed ISP mapping is that the input--target relationship becomes a well-defined function rather than a one-to-many mapping. Under JPG supervision the same scene can map to different targets depending on the camera's tone mapping and post-processing, which forces the network to average over an ambiguous, multi-modal target distribution. The dev-RAW reference, in contrast, is produced by a single deterministic transformation of the long-exposure RAW, so the learning problem collapses to a supervised regression that a small network can learn reliably. This is the fundamental reason the efficiency-oriented CNN route remains competitive in this task.
+
+\subsection{Single-Model Multi-Illuminance and Cross-Camera Generalization}
 
 The single-model multi-illuminance design is a second factor that distinguishes this work from SIED. Whereas SIED trains a separate model for each illuminance level, our model jointly covers all three SIED levels and still maintains graceful degradation: PSNR falls by only 2.63~dB (34.37 $\rightarrow$ 31.74) while the illuminance drops by about two orders of magnitude. This mild degradation is noteworthy because noise grows nonlinearly as light decreases---at 0.0001--0.001~lx the photon count is roughly $100\times$ lower than at 0.01--0.1~lx, so the signal-to-noise ratio is far worse---yet the single model absorbs this regime shift without a per-level model or an illuminance prior. The practical implication is a single deployable artifact instead of three, which reduces storage, switching logic, and the risk of mis-routing an input to the wrong level model at inference time.
 
 The cross-camera experiments support the stronger claim that the learned mapping is sensor-agnostic rather than memorized. On the SIED Canon subset, the Sony-trained model reaches 33.58~dB without fine-tuning, only 0.79~dB below its Sony result. On the independent ELD dataset, the same model transfers to four additional sensors and beats the amplification baseline on all of them, with per-camera gains from $+0.57$~dB (Canon EOS 700D) to $+6.86$~dB (Nikon D850 and Sony A7S2). The spread of these gains shows that the transfer is robust but not uniform; the fact that every camera improves over its baseline indicates that the network has learned a general denoising operation conditioned on local SNR, rather than a lookup of the SIED Sony noise profile.
 
+\subsection{Efficiency--Quality Trade-off and Edge Deployment}
+
 The efficiency--quality trade-off is the central theme of this work. Across the three capacity tiers base\_ch$=$8/16/32 (0.49M/1.94M/7.82M parameters; 82.6/43.3/17.8~FPS on a V100), quality and cost scale predictably: each doubling of the channel width multiplies parameters and MACs by about $4\times$ while roughly halving FPS (Figure~\ref{fig:tradeoff}). This smooth, controllable scaling turns the design into an explicit deployment decision---base\_ch$=$32 for maximum quality, base\_ch$=$8 for real-time edge inference---rather than a one-size-fits-all compromise. The two lowest-cost quality levers, SE channel attention and optional D4 TTA, add $+0.46$~dB and $+0.12$~dB respectively at negligible parameter cost, confirming that small, principled architectural choices can recover meaningful quality without abandoning the lightweight premise.
 
 Placed in the broader landscape of Figure~\ref{fig:landscape}, these results sharpen the contribution. Transformer- and diffusion-based methods achieve higher sRGB quality, but at the cost of quadratic attention or iterative multi-step sampling that make them impractical for the target platforms; our lightest configuration is about two orders of magnitude smaller and more than $80\times$ faster than the diffusion baseline SIED, at the price of a quality gap that the dev-RAW protocol renders acceptable for the efficiency-oriented use case. On a Jetson Orin Nano Super edge device, all three tiers run in fp16 (7.61/4.78/2.00~FPS) and the two lightest tiers also run in fp32 (5.98/3.27~FPS), while the largest tier exceeds the device's unified memory in fp32---a concrete reminder that the lightweight route is not merely a preference but a necessity for resource-constrained deployment. This work therefore does not claim to surpass diffusion methods on quality; it demonstrates that, when the supervision protocol and the architecture are both chosen with efficiency in mind, a compact CNN can cover the extremely low-light regime at a cost that makes real deployment feasible.
+
+\subsection{Robustness of Design Choices}
 
 The ablation studies, taken together, reveal a consistent and reassuring pattern: every lightweight design choice contributes a small but measurable gain, and none of them is fragile. The SSIM weight is robust across a wide range (0.05--0.30) with only modest PSNR variation (33.99--34.54~dB); the SE gain is largely placement-independent (34.37--34.62~dB regardless of shallow or deep placement); and TTA yields a predictable improvement proportional to its cost (8.375$\times$ latency for $+0.12$~dB). This robustness matters in practice: the method does not hinge on finely tuned, brittle hyperparameters, which increases confidence that it will transfer to new scenes and sensors without per-domain re-tuning.
 
